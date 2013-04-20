@@ -19,8 +19,14 @@ def load_repositories
   for url in result[:CKAN]
     Tire.index 'repositories' do
       delete
-      create
-      store :url => url, :type => 'ckan'
+
+      create :mappings => {
+        :repository => {
+          :properties => { :url => 'string' }
+        } 
+      }
+
+      store :url => url, :type => 'repository', :subtype => 'ckan'
       refresh
     end
   end
