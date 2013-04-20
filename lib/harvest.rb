@@ -15,7 +15,16 @@ end
 
 def load_repositories
   result = YAML.load_file('repositories.yml')
-  symbolize result
+  result = symbolize result
+  for url in result[:CKAN]
+    Tire.index 'repositories' do
+      delete
+      create
+      store :url => url, :type => 'ckan'
+      refresh
+    end
+  end
+  result
 end
 
 def query_dataset(base_url, dataset)
