@@ -16,19 +16,20 @@ end
 def load_repositories
   result = YAML.load_file('repositories.yml')
   result = symbolize result
-  for url in result[:CKAN]
-    Tire.index 'repositories' do
-      delete
 
-      create :mappings => {
-        :repository => {
-          :properties => { :url => 'string' }
-        } 
-      }
+  Tire.index 'repositories' do
+    delete
+    create :mappings => {
+      :repository => {
+        :properties => { :url => 'string' }
+      } 
+    }
 
-      store :url => url, :type => 'ckan', :_type => 'repository'
-      refresh
+    for repository in result[:CKAN]
+      store :name => repository['name'], :url => repository['url'],
+        :type => 'CKAN', :_type => 'repository'
     end
+    refresh
   end
   result
 end
@@ -84,11 +85,11 @@ def index(dataset)
 end
 
 def harvest_ckan_repositories
-  for url in load_repositories[:CKAN]
-    datasets = query_datasets url
+  for repository in load_repositories[:CKAN]
+    datasets = query_datasets repository['url']
     datasets.each_with_index do |name, i|
       $log.info "#{i} of #{datasets.length}"
-      dataset = query_dataset url, name
+      dataset = query_dataset repository['url'], name
       index dataset
     end
   end

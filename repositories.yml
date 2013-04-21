@@ -1,0 +1,8 @@
+CKAN:
+    - name: GovData.de
+      url:  https://www.govdata.de/ckan/api
+      location: Berlin, Germany
+
+    - name: data.gov.uk
+      url: http://data.gov.uk
+      location: London, UK
