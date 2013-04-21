@@ -26,7 +26,7 @@ def load_repositories
         } 
       }
 
-      store :url => url, :type => 'repository', :subtype => 'ckan'
+      store :url => url, :type => 'ckan', :_type => 'repository'
       refresh
     end
   end
