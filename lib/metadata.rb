@@ -5,7 +5,10 @@ module Metadata
 
   class Dataset
 
-    def initialize(attributes={})
+    attr_reader :repository
+
+    def initialize(attributes={}, source)
+      attributes['repository'] = source
       @attributes = Dataset.recursive_symbolize_keys attributes
     end
 

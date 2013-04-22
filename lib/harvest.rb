@@ -26,8 +26,8 @@ def load_repositories
     }
 
     for repository in result[:CKAN]
-      store :name => repository['name'], :url => repository['url'],
-        :type => 'CKAN', :_type => 'repository'
+      store :_id => repository['name'], :name => repository['name'],
+        :url => repository['url'], :type => 'CKAN', :_type => 'repository'
     end
     refresh
   end
@@ -76,9 +76,9 @@ def parse(json)
 
 end
 
-def index(dataset)
-  entry = CKAN::Dataset.new dataset
-  Tire.index 'ckan' do
+def index(dataset, source)
+  entry = CKAN::Dataset.new dataset, source
+  Tire.index 'metadata' do
     create
     store entry
   end
@@ -90,15 +90,10 @@ def harvest_ckan_repositories
     datasets.each_with_index do |name, i|
       $log.info "#{i} of #{datasets.length}"
       dataset = query_dataset repository['url'], name
-      index dataset
+      next unless dataset.is_a? Hash
+      index dataset, repository['name']
     end
   end
 end
-
-def load_datasets
-  Tire.search('ckan') { query { all } }.results.map do |document|
-    CKAN::Dataset.new JSON.parse document.to_json
-  end
-end 
 
 harvest_ckan_repositories

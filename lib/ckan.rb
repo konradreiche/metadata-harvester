@@ -8,8 +8,8 @@ module CKAN
       :maintainer_email, :notes, :groups, :tags, :url, :type, :resources,
       :license_id, :extras
 
-    def type
-      'dataset'
+    def _type
+      'ckan'
     end
 
     def to_indexed_json
