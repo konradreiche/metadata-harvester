@@ -28,7 +28,7 @@ def load_repositories
 
     for repository in result[:CKAN]
       location = Geocoder.search(repository['location']).first
-      store :_id => repository['name'], :name => repository['name'],
+      store :id => repository['name'], :name => repository['name'],
         :url => repository['url'], :type => 'CKAN', :_type => 'repository',
         :latitude => location.latitude, :longitude => location.longitude
     end

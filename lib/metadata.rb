@@ -31,6 +31,7 @@ module Metadata
       ['_score', '_type', '_index', '_version', 'sort', 'highlight',
        '_explanation'].include? name
     end
+
   end
 
 end
