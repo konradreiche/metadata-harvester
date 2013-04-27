@@ -1,6 +1,7 @@
 require 'curb'
-require 'json'
+require 'geocoder'
 require 'logger'
+require 'json'
 require 'tire'
 require 'yaml'
 
@@ -26,8 +27,10 @@ def load_repositories
     }
 
     for repository in result[:CKAN]
+      location = Geocoder.search(repository['location']).first
       store :_id => repository['name'], :name => repository['name'],
-        :url => repository['url'], :type => 'CKAN', :_type => 'repository'
+        :url => repository['url'], :type => 'CKAN', :_type => 'repository',
+        :latitude => location.latitude, :longitude => location.longitude
     end
     refresh
   end
