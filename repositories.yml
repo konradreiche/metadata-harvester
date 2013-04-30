@@ -4,5 +4,5 @@ CKAN:
       location: Berlin, Germany
 
     - name: data.gov.uk
-      url: http://data.gov.uk
+      url: http://data.gov.uk/api
       location: London, UK
