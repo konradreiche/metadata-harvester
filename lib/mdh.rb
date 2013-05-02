@@ -37,20 +37,9 @@ def load_repositories
   result
 end
 
-def query(base_url)
-  curl = Curl::Easy.new
-  curl.url = base_url + '/rest/dataset'
-  curl.ssl_verify_peer = false
-  curl.perform
-  JSON.parse(curl.body_str)
-end
-
 def harvest_ckan_repositories
   for repository in load_repositories[:CKAN]
-    datasets = query repository['url']
-    datasets.each_with_index do |name, i|
-    Harvester.perform_async(repository['url'], name, repository['name'], i)
-    end
+    Harvester.perform_async(repository['url'], repository['name'])
   end
 end
 
