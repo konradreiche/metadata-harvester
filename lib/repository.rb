@@ -2,21 +2,18 @@ module Repository
 
   class CKAN
     
-    attr_reader :name, :url, :latitude, :longitude
+    attr_reader :name, :url, :type, :latitude, :longitude
 
     def initialize(attributes)
       @name = attributes[:name]
       @url = attributes[:url]
+      @type = 'CKAN'
       @latitude = attributes[:latitude]
       @longitude = attributes[:longitude]
     end
 
     def id
       @name
-    end
-
-    def type
-      'CKAN'
     end
 
     def _type
