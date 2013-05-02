@@ -17,7 +17,7 @@ class Harvester
   def initialize
     @log = Logger.new(STDOUT)
     @log.level = Logger::DEBUG
-    @limit = 100
+    @limit = 500
   end
 
   def perform(url, source)
