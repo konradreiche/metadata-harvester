@@ -4,6 +4,7 @@ require 'json'
 require 'tire'
 require 'yaml'
 
+require_relative 'repository'
 require_relative 'harvester'
 
 Sidekiq.configure_client do |config|
@@ -20,17 +21,13 @@ def load_repositories
 
   Tire.index 'repositories' do
     delete
-    create :mappings => {
-      :repository => {
-        :properties => { :url => 'string' }
-      } 
-    }
 
     for repository in result[:CKAN]
       location = Geocoder.search(repository['location']).first
-      store :id => repository['name'], :name => repository['name'],
-        :url => repository['url'], :type => 'CKAN', :_type => 'repository',
-        :latitude => location.latitude, :longitude => location.longitude
+      store Repository::CKAN.new(:name => repository['name'],
+                                 :url => repository['url'], 
+                                 :latitude => location.latitude,
+                                 :longitude => location.longitude)
     end
     refresh
   end

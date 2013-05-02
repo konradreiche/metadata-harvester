@@ -1,7 +1,4 @@
-require 'rails'
-
 module Metadata
-
 
   class Dataset
 
