@@ -4,6 +4,7 @@ require 'json'
 require 'sidekiq'
 require 'sidekiq/testing/inline'
 require 'tire'
+require 'zipruby'
 
 require_relative 'ckan'
 
@@ -20,13 +21,25 @@ class Harvester
     @limit = 500
   end
 
-  def perform(url, source)
+  def perform(url, source, import)
 
-    steps = (count(url) / @limit).ceil
-    steps.times do |i|
-      datasets = query(url, i + 1)
-      index(datasets, source)
+    if import.nil?
+      steps = (count(url) / @limit).ceil
+      steps.times do |i|
+        datasets = query(url, i + 1)
+        index(datasets, source)
+      end
+    else
+      zipbytes = Curl.get(import).body_str
+      Zip::Archive.open_buffer(zipbytes) do |zf|
+        # read the first file
+        zf.fopen(zf.get_name(0)) do |f|
+          unzipped = f.read
+          index(parse(unzipped), source)
+        end
+      end
     end
+
   end
 
   def count(url)
@@ -42,9 +55,11 @@ class Harvester
     data = '{"limit": "%s", "page": "%s"}' % [@limit, i]
     curl = Curl.post(url, data)
     result = JSON.parse(curl.body_str)['result']
-    result.each { |dataset|
+    result = result.each { |dataset|
       dataset = parse dataset
       dataset['extras'] = parse_extras dataset['extras']
+      dataset['groups'] = dataset['groups'].map { |g| g['name'] }
+      dataset['tags'] = dataset['tags'].map { |t| t['name'] }
     }.compact
   end
 
@@ -75,6 +90,8 @@ class Harvester
         parse result
       rescue
         json = nil if json.is_a? String and json.empty?
+        json = nil if json.is_a? Array and json.empty?
+        json = nil if json.is_a? Hash and json.empty?
         json
       end
     end

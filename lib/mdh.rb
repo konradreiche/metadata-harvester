@@ -36,7 +36,7 @@ end
 
 def harvest_ckan_repositories
   for repository in load_repositories[:CKAN]
-    Harvester.perform_async(repository['url'], repository['name'])
+    Harvester.perform_async(repository['url'], repository['name'], repository['import'])
   end
 end
 
