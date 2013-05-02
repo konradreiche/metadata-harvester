@@ -2,7 +2,6 @@ require 'curb'
 require 'logger'
 require 'json'
 require 'sidekiq'
-require 'sidekiq/testing/inline'
 require 'tire'
 require 'zipruby'
 
@@ -18,15 +17,14 @@ class Harvester
   def initialize
     @log = Logger.new(STDOUT)
     @log.level = Logger::DEBUG
-    @limit = 500
   end
 
-  def perform(url, source, import)
+  def perform(url, source, limit, import)
 
     if import.nil?
-      steps = (count(url) / @limit).ceil
+      steps = (count(url) / limit).ceil
       steps.times do |i|
-        datasets = query(url, i + 1)
+        datasets = query(url, limit, i + 1)
         index(datasets, source)
       end
     else
@@ -50,9 +48,9 @@ class Harvester
     JSON.parse(curl.body_str)['count']
   end
 
-  def query(url, i)
+  def query(url, limit, i)
     url = url + '/3/action/current_package_list_with_resources'
-    data = '{"limit": "%s", "page": "%s"}' % [@limit, i]
+    data = '{"limit": "%s", "page": "%s"}' % [limit, i]
     curl = Curl.post(url, data)
     result = JSON.parse(curl.body_str)['result']
     result = result.each { |dataset|
