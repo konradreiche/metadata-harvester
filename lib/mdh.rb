@@ -23,9 +23,14 @@ def load_repositories
     delete
 
     for repository in result[:CKAN]
+
+      datasets = JSON.parse(Curl.get(repository['url'] +
+                                     '/search/dataset').body_str)['count']
+
       location = Geocoder.search(repository['location']).first
       store Repository::CKAN.new(:name => repository['name'],
-                                 :url => repository['url'], 
+                                 :url => repository['url'],
+                                 :datasets => datasets,
                                  :latitude => location.latitude,
                                  :longitude => location.longitude)
     end
