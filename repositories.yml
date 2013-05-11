@@ -13,3 +13,8 @@ CKAN:
       url: http://publicdata.eu/api
       location: Brussels, Belgium
       limit: 100
+
+    - name: catalogodatos.gub.uy
+      url: https://catalogodatos.gub.uy/api
+      location: Montevideo, Uruguay
+      limit: 100
