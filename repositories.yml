@@ -12,9 +12,14 @@ CKAN:
     - name: publicdata.eu
       url: http://publicdata.eu/api
       location: Brussels, Belgium
-      limit: 100
+      limit: 50
 
     - name: catalogodatos.gub.uy
       url: https://catalogodatos.gub.uy/api
       location: Montevideo, Uruguay
       limit: 100
+
+    - name: data.qld.gov.au/api
+      url: https://data.qld.gov.au/api
+      location: Queensland, Australia
+      limit: 300
