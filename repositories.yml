@@ -19,7 +19,7 @@ CKAN:
       location: Montevideo, Uruguay
       limit: 100
 
-    - name: data.qld.gov.au/api
+    - name: data.qld.gov.au
       url: https://data.qld.gov.au/api
       location: Queensland, Australia
       limit: 300
