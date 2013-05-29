@@ -22,7 +22,7 @@ class Harvester
   def perform(url, source, limit, import)
 
     if import.nil?
-      steps = (count(url) / limit).ceil
+      steps = (count(url) / limit.to_f).ceil
       steps.times do |i|
         datasets = query(url, limit, i + 1)
         index(datasets, source)
