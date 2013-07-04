@@ -23,3 +23,8 @@ CKAN:
       url: https://data.qld.gov.au/api
       location: Queensland, Australia
       limit: 300
+
+    - name: catalog.data.gov
+      url: http://catalog.data.gov/api
+      location: USA, Washington, DC
+      limit: 50
