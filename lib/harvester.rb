@@ -1,9 +1,11 @@
 require 'curb'
 require 'logger'
+require 'open-uri'
 require 'json'
 require 'sidekiq'
 require 'tire'
 require 'zipruby'
+require 'zlib'
 
 require_relative 'ckan'
 
@@ -28,13 +30,19 @@ class Harvester
         index(datasets, source)
       end
     else
-      zipbytes = Curl.get(import).body_str
-      Zip::Archive.open_buffer(zipbytes) do |zf|
-        # read the first file
-        zf.fopen(zf.get_name(0)) do |f|
-          unzipped = f.read
-          index(parse(unzipped), source)
+      case import.split('.').last.to_sym
+      when :zip
+        zipbytes = Curl.get(import).body_str
+        Zip::Archive.open_buffer(zipbytes) do |zf|
+          # read the first file
+          zf.fopen(zf.get_name(0)) do |f|
+            unzipped = f.read
+            index(parse(unzipped), source)
+          end
         end
+      when :gz
+        gz = Zlib::GzipReader.new(open(import))
+        index(parse(gz.read), source)
       end
     end
 

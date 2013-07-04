@@ -2,7 +2,7 @@ CKAN:
     - name: GovData.de
       url:  https://www.govdata.de/ckan/api
       location: Berlin, Germany
-      limit: 500
+      import: https://www.govdata.de/ckan/dump/govdata.de-daily.json.gz
 
     - name: data.gov.uk
       url: http://data.gov.uk/api
