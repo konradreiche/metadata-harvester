@@ -20,7 +20,6 @@ def load_repositories
   result = symbolize result
 
   Tire.index 'repositories' do
-    delete
 
     for repository in result[:CKAN]
 
