@@ -25,6 +25,7 @@ class Harvester
 
     if import.nil?
       steps = (count(url) / limit.to_f).ceil
+      logger.info("Index records")
       steps.times do |i|
         datasets = query(url, limit, i + 1)
         index(datasets, source)
@@ -38,11 +39,13 @@ class Harvester
           # read the first file
           zf.fopen(zf.get_name(0)) do |f|
             unzipped = f.read
+            logger.info("Index records")
             index(parse(unzipped), source)
           end
         end
       when :gz
         gz = Zlib::GzipReader.new(open(import))
+        logger.info("Index records")
         index(parse(gz.read), source)
       end
     end
@@ -106,7 +109,6 @@ class Harvester
 
   def index(datasets, repository)
     date = Time.new
-    logger.info("Index records")
     datasets.each_with_index do |dataset, i|
       Tire.index 'metadata' do
         create
