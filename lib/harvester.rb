@@ -30,6 +30,7 @@ class Harvester
         index(datasets, source)
       end
     else
+      logger.info("Download #{import}")
       case import.split('.').last.to_sym
       when :zip
         zipbytes = Curl.get(import).body_str
@@ -104,6 +105,7 @@ class Harvester
   end
 
   def index(datasets, repository)
+    logger.info("Index records")
     datasets.each_with_index do |dataset, i|
       Tire.index 'metadata' do
         create
