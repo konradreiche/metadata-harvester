@@ -1,3 +1,6 @@
+#require 'sidekiq'
+#require 'sidekiq/testing/inline'
+
 require 'curb'
 require 'geocoder'
 require 'json'
