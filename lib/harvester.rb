@@ -105,11 +105,12 @@ class Harvester
   end
 
   def index(datasets, repository)
+    date = Time.new
     logger.info("Index records")
     datasets.each_with_index do |dataset, i|
       Tire.index 'metadata' do
         create
-        store CKAN::Dataset.new(dataset, repository)
+        store CKAN::Dataset.new(dataset, repository, date)
       end
     end
   end

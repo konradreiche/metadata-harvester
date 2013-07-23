@@ -2,9 +2,10 @@ module Metadata
 
   class Dataset
 
-    def initialize(attributes={}, repository)
+    def initialize(attributes={}, repository, date)
       @attributes = Hash.new
-      @attributes[:document] = Dataset.recursive_symbolize_keys(attributes)
+      @attributes[:record] = Dataset.recursive_symbolize_keys(attributes)
+      @attributes[:date] = date
       @attributes[:repository] = repository
     end
 
