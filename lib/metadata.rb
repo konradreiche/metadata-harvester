@@ -2,9 +2,10 @@ module Metadata
 
   class Dataset
 
-    def initialize(attributes={}, source)
-      @attributes = Dataset.recursive_symbolize_keys attributes
-      @attributes[:repository] = source
+    def initialize(attributes={}, repository)
+      @attributes = Hash.new
+      @attributes[:document] = Dataset.recursive_symbolize_keys(attributes)
+      @attributes[:repository] = repository
     end
 
     def self.recursive_symbolize_keys(h)
@@ -20,11 +21,6 @@ module Metadata
       else
         h
       end
-    end
-
-    def meta_metadata?(name)
-      ['_score', '_type', '_index', '_version', 'sort', 'highlight',
-       '_explanation'].include? name
     end
 
   end

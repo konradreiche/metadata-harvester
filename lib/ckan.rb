@@ -4,10 +4,6 @@ module CKAN
 
   class Dataset < Metadata::Dataset
 
-    attr_reader :name, :title, :author, :author_email, :maintainer,
-      :maintainer_email, :notes, :groups, :tags, :url, :type, :resources,
-      :license_id, :extras
-
     def _type
       'ckan'
     end

@@ -103,11 +103,11 @@ class Harvester
     end
   end
 
-  def index(datasets, source)
+  def index(datasets, repository)
     datasets.each_with_index do |dataset, i|
       Tire.index 'metadata' do
         create
-        store CKAN::Dataset.new(dataset, source)
+        store CKAN::Dataset.new(dataset, repository)
       end
     end
   end
