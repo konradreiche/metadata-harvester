@@ -27,4 +27,4 @@ CKAN:
     - name: catalog.data.gov
       url: http://catalog.data.gov/api
       location: USA, Washington, DC
-      limit: 100
+      limit: 20
