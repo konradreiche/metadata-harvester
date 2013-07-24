@@ -1,3 +1,4 @@
+require 'action_view'
 require 'curb'
 require 'logger'
 require 'open-uri'
@@ -26,9 +27,18 @@ class Harvester
     if import.nil?
       steps = (count(url) / limit.to_f).ceil
       logger.info("Index records")
+
+      before = Time.new
+      elapsed = 0
       steps.times do |i|
         datasets = query(url, limit, i + 1)
         index(datasets, source)
+
+        now = Time.new
+        e = (now - before) * (steps - i + 1)
+        display = ActionView::Base.new.distance_of_time_in_words(before, before + e)
+        logger.info("#{i} of #{steps} - #{url} ~ #{display}")
+        before = now
       end
     else
       logger.info("Download #{import}")
@@ -49,7 +59,6 @@ class Harvester
         index(parse(gz.read), source)
       end
     end
-
   end
 
   def count(url)

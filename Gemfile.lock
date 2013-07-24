@@ -1,6 +1,16 @@
 GEM
   remote: https://rubygems.org/
   specs:
+    actionpack (3.2.13)
+      activemodel (= 3.2.13)
+      activesupport (= 3.2.13)
+      builder (~> 3.0.0)
+      erubis (~> 2.7.0)
+      journey (~> 1.0.4)
+      rack (~> 1.4.5)
+      rack-cache (~> 1.2)
+      rack-test (~> 0.6.1)
+      sprockets (~> 2.2.1)
     activemodel (3.2.13)
       activesupport (= 3.2.13)
       builder (~> 3.0.0)
@@ -12,19 +22,33 @@ GEM
     clamp (0.2.3)
     curb (0.8.3)
     daemon_controller (0.2.6)
+    erubis (2.7.0)
     geocoder (1.1.8)
     hashr (0.0.22)
+    hike (1.2.2)
     i18n (0.6.1)
+    journey (1.0.4)
     json (1.8.0)
     logger (1.2.8)
     mime-types (1.23)
     multi_json (1.7.3)
+    rack (1.4.5)
+    rack-cache (1.2)
+      rack (>= 0.4)
+    rack-test (0.6.2)
+      rack (>= 1.0)
     rake (10.0.4)
     redis-server (0.0.5)
       clamp (~> 0.2.1)
       daemon_controller (~> 0.2.6)
     rest-client (1.6.7)
       mime-types (>= 1.16)
+    sprockets (2.2.2)
+      hike (~> 1.2)
+      multi_json (~> 1.0)
+      rack (~> 1.0)
+      tilt (~> 1.1, != 1.3.0)
+    tilt (1.4.1)
     tire (0.5.8)
       activemodel (>= 3.0)
       activesupport
@@ -39,6 +63,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  actionpack
   curb
   geocoder
   json

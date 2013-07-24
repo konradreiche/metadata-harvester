@@ -1,5 +1,6 @@
 source 'https://rubygems.org'
 
+gem 'actionpack'
 gem 'curb'
 gem 'geocoder'
 gem 'logger'
