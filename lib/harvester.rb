@@ -31,9 +31,8 @@ class Harvester
       before = Time.new
       elapsed = 0
       steps.times do |i|
-        datasets = query(url, limit, i + 1)
+        datasets = query(url, limit, i)
         index(datasets, source)
-
         now = Time.new
         e = (now - before) * (steps - i + 1)
         display = ActionView::Base.new.distance_of_time_in_words(before, before + e)
@@ -70,16 +69,16 @@ class Harvester
   end
 
   def query(url, limit, i)
-    url = url + '/3/action/current_package_list_with_resources'
-    data = '{"limit": "%s", "page": "%s"}' % [limit, i]
-    curl = Curl.post(url, data)
-    result = JSON.parse(curl.body_str)['result']
-    result = result.each { |dataset|
+    url = url + '/3/action/package_search'
+    data = { rows: limit, start: i }
+    curl = Curl.get(url, data)
+    result = JSON.parse(curl.body_str)['result']['results']
+    result = result.each do |dataset|
       dataset = parse dataset
       dataset['extras'] = parse_extras dataset['extras']
       dataset['groups'] = dataset['groups'].map { |g| g['name'] }
       dataset['tags'] = dataset['tags'].map { |t| t['name'] }
-    }.compact
+    end.compact
   end
 
   def parse_extras(extras)
