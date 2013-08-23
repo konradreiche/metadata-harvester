@@ -1,6 +1,3 @@
-#require 'sidekiq'
-#require 'sidekiq/testing/inline'
-
 require 'curb'
 require 'geocoder'
 require 'json'
@@ -9,6 +6,11 @@ require 'yaml'
 
 require_relative 'repository'
 require_relative 'harvester'
+
+if ENV['DEBUG']
+  require 'sidekiq'
+  require 'sidekiq/testing/inline'
+end
 
 Sidekiq.configure_client do |config|
     config.redis = { :namespace => 'metadata-harvester', :url => 'redis://localhost:6379' }
