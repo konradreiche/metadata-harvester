@@ -20,6 +20,7 @@ class Harvester
   def initialize
     @log = Logger.new(STDOUT)
     @log.level = Logger::DEBUG
+    @sleep = 3
   end
 
   def perform(url, source, limit, import)
@@ -79,6 +80,11 @@ class Harvester
       dataset['groups'] = dataset['groups'].map { |g| g['name'] }
       dataset['tags'] = dataset['tags'].map { |t| t['name'] }
     end.compact
+  rescue JSON::ParserError, Curl::Err::PartialFileError => e
+    @sleep *= 2
+    logger.warn("Parse Error. Retry in #{sleep}s")
+    sleep @sleep
+    retry
   end
 
   def parse_extras(extras)
