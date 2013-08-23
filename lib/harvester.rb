@@ -9,6 +9,7 @@ require 'zipruby'
 require 'zlib'
 
 require_relative 'ckan'
+require_relative 'json_archiver'
 
 Sidekiq.configure_server do |config|
   config.redis = { :namespace => 'metadata-harvester', :url => 'redis://localhost:6379' }
@@ -23,8 +24,10 @@ class Harvester
     @sleep = 3
   end
 
-  def perform(url, source, limit, import)
+  def perform(url, source, limit, archive=false, import=nil)
 
+    @archive = archive
+    @archiver = JsonArchiver.new(source) if @archive
     if import.nil?
       steps = (count(url) / limit.to_f).ceil
       logger.info("Index records")
@@ -122,7 +125,8 @@ class Harvester
   end
 
   def index(datasets, repository)
-    date = Time.new
+    @archiver.store(datasets) if @archive
+    date = Date.today
     datasets.each_with_index do |dataset, i|
       Tire.index 'metadata' do
         create

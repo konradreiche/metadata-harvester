@@ -2,6 +2,7 @@ require 'curb'
 require 'geocoder'
 require 'json'
 require 'tire'
+require 'trollop'
 require 'yaml'
 
 require_relative 'repository'
@@ -44,9 +45,17 @@ def load_repositories
 end
 
 def harvest_ckan_repositories
+
+  options = Trollop::options do
+    opt :archive, 'Archive raw data in compressed JSON'
+  end
+
   for repository in load_repositories[:CKAN]
-    Harvester.perform_async(repository['url'], repository['name'],
-                            repository['limit'], repository['import'])
+    Harvester.perform_async(repository['url'],
+                            repository['name'],
+                            repository['limit'],
+                            options[:archive],
+                            repository['import'])
   end
 end
 
