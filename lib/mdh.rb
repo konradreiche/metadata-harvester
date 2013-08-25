@@ -26,21 +26,23 @@ def load_repositories
   result = YAML.load_file("#{path}/repositories.yml")
   result = symbolize result
 
-  Tire.index 'repositories' do
+  begin
+    Tire.index 'repositories' do
+      for repository in result[:CKAN]
+        datasets = JSON.parse(Curl.get(repository['url'] +
+                                       '/search/dataset').body_str)['count']
 
-    for repository in result[:CKAN]
-
-      datasets = JSON.parse(Curl.get(repository['url'] +
-                                     '/search/dataset').body_str)['count']
-
-      location = Geocoder.search(repository['location']).first
-      store Repository::CKAN.new(:name => repository['name'],
-                                 :url => repository['url'],
-                                 :datasets => datasets,
-                                 :latitude => location.latitude,
-                                 :longitude => location.longitude)
+        location = Geocoder.search(repository['location']).first
+        store Repository::CKAN.new(:name => repository['name'],
+                                   :url => repository['url'],
+                                   :datasets => datasets,
+                                   :latitude => location.latitude,
+                                   :longitude => location.longitude)
+      end
+      refresh
     end
-    refresh
+  rescue Errno::ECONNREFUSED
+    # swallow
   end
   result
 end
