@@ -41,7 +41,7 @@ def load_repositories
       end
       refresh
     end
-  rescue Errno::ECONNREFUSED
+  rescue Errno::ECONNREFUSED, Curl::Err::SSLCACertificateError
     # swallow
   end
   result
