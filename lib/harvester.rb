@@ -125,7 +125,10 @@ class Harvester
   end
 
   def index(datasets, repository)
-    @archiver.store(datasets) if @archive
+    if @archive
+      @archiver.store(datasets)
+      return
+    end
     date = Date.today
     datasets.each_with_index do |dataset, i|
       Tire.index 'metadata' do
