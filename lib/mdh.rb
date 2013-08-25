@@ -22,7 +22,8 @@ def symbolize(hash)
 end
 
 def load_repositories
-  result = YAML.load_file('repositories.yml')
+  path = File.expand_path('..', File.dirname(__FILE__))
+  result = YAML.load_file("#{path}/repositories.yml")
   result = symbolize result
 
   Tire.index 'repositories' do
