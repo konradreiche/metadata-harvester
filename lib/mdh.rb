@@ -23,8 +23,7 @@ module MetadataHarvester
       catalog = load_repositories()
       catalog.each do |type, repositories|
         repositories.each do |r|
-          args = [r[:url], r[:name], r[:limit], options[:archive], r[:import]]
-          Worker.perform_async(*args)
+          Worker.perform_async(repository, options)
         end
       end
     end

@@ -16,16 +16,38 @@ module MetadataHarvester
   class Worker
     include Sidekiq::Worker
 
-    def initialize
-      @log = Logger.new(STDOUT)
-      @log.level = Logger::DEBUG
-      @sleep = 3
+    def download_dump(repository)
+      logger.info("Fetch dump from #{import}")
+      url = repository[:dump]
+      file_type = File.extname[1..-1]
+      case file_type
+      when :zip
+        zip_bytes = Curl.get(url).body_str
+        Zip::Archive.open_buffer(zip_bytes) do |zf|
+          # read the first file
+          zf.fopen(zf.get_name(0)) do |f|
+            unzipped = f.read
+            logger.info("Index records")
+            datasets = JSON.parse_recursively(unzipped)
+            @archiver.store(datasets)
+          end
+        end
+      when :gz
+        gz = Zlib::GzipReader.new(open(url))
+        index(parse(gz.read), source)
+      end
     end
 
-    def perform(url, source, limit, archive=false, import=nil)
+    def 
 
-      @archive = archive
+    def perform(repository, options)
+      @compress = compress
       @archiver = JsonArchiver.new(source) if @archive
+
+      if repository.key?(:dump)
+        download_dump(repository)
+      end
+
       if import.nil?
         steps = (count(url) / limit.to_f).ceil
         logger.info("Index records")
@@ -42,23 +64,6 @@ module MetadataHarvester
           before = now
         end
       else
-        logger.info("Download #{import}")
-        case import.split('.').last.to_sym
-        when :zip
-          zipbytes = Curl.get(import).body_str
-          Zip::Archive.open_buffer(zipbytes) do |zf|
-            # read the first file
-            zf.fopen(zf.get_name(0)) do |f|
-              unzipped = f.read
-              logger.info("Index records")
-              index(parse(unzipped), source)
-            end
-          end
-        when :gz
-          gz = Zlib::GzipReader.new(open(import))
-          logger.info("Index records")
-          index(parse(gz.read), source)
-        end
       end
     end
 
@@ -102,6 +107,8 @@ module MetadataHarvester
       result
     end
 
+    ##
+    #
     def parse(json)
       if json.is_a? Hash
         json.each do |key, value|
@@ -126,13 +133,6 @@ module MetadataHarvester
       if @archive
         @archiver.store(datasets)
         return
-      end
-      date = Date.today
-      datasets.each_with_index do |dataset, i|
-        Tire.index 'metadata' do
-          create
-          store CKAN::Dataset.new(dataset, repository, date)
-        end
       end
     end
   end

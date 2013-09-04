@@ -2,12 +2,12 @@ CKAN:
     - name: GovData.de
       url:  https://www.govdata.de/ckan/api
       location: Berlin, Germany
-      import: https://www.govdata.de/ckan/dump/govdata.de-daily.json.gz
+      dump: https://www.govdata.de/ckan/dump/govdata.de-daily.json.gz
  
     - name: data.gov.uk
       url: http://data.gov.uk/api
       location: London, UK
-      import: http://data.gov.uk/data/dumps/data.gov.uk-ckan-meta-data-latest.json.zip
+      dump: http://data.gov.uk/data/dumps/data.gov.uk-ckan-meta-data-latest.json.zip
 
     - name: publicdata.eu
       url: http://publicdata.eu/api
