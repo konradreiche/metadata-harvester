@@ -1,0 +1,17 @@
+#!/user/bin/env ruby
+
+require 'mdh'
+require 'sidekiq'
+
+if ENV['DEBUG']
+  require 'sidekiq'
+  require 'sidekiq/testing/inline'
+end
+
+Sidekiq.configure_client do |config|
+  namespace = 'metadata-harvester'
+  url = 'redis://localhost:6379'
+  config.redis =  { namespace: namespace, url: url  }
+end
+
+MetadataHarvester.start

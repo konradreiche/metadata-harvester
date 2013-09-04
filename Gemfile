@@ -1,8 +1,8 @@
 source 'https://rubygems.org'
 
+gem 'activesupport'
 gem 'actionpack'
 gem 'curb'
-gem 'geocoder'
 gem 'logger'
 gem 'json'
 gem 'redis-server'
