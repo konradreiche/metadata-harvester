@@ -9,19 +9,23 @@ module CoreExt
     # Returns null on an invalid JSON string.
     #
     def parse_recursively(source)
-      if source.is_a?(Hash)
-        source.each { |key, value| source[key] = parse_recursively(value) }
-      elsif source.is_a?(Array)
-        source.map { |item| parse_recursively(item) }
-      elsif source.is_a?(String)
-        return parse_recursively(JSON.parse(source)) if valid_json?(source)
-        source
-      else
-        source
+      recursion = lambda do |source|
+        if source.is_a?(Hash)
+          source.each { |key, value| source[key] = recursion.call(value) }
+        elsif source.is_a?(Array)
+          source.map { |item| recursion.call(item) }
+        elsif source.is_a?(String) && valid?(source)
+          recursion.call(JSON.parse(source))
+        else
+          source
+        end
       end
+
+      source = JSON.parse(source)
+      recursion.call(source)
     end
 
-    def valid_json?(source)
+    def valid?(source)
       JSON.parse(source)
       true
     rescue JSON::ParserError
