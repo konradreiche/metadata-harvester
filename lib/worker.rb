@@ -4,6 +4,7 @@ require 'curb'
 require 'json'
 require 'sidekiq'
 
+require_relative 'core_ext'
 require_relative 'json_archiver'
 
 Sidekiq.configure_server do |config|
@@ -13,9 +14,9 @@ Sidekiq.configure_server do |config|
 end
 
 module MetadataHarvester
-  include ActionView::Helpers::DateHelper
 
   class Worker
+    include ActionView::Helpers::DateHelper
     include Sidekiq::Worker
 
     ##
@@ -69,7 +70,7 @@ module MetadataHarvester
         now = Time.new
         elapsed = (now - before) * (steps - i + 1)
         eta = distance_of_time_in_words(before, before + elapsed)
-        logger.info("#{i} of #{steps} - #{url} ~ #{eta}")
+        logger.info("#{i + 1} of #{steps} - #{url} ~ #{eta}")
         before = now
       end
     end
@@ -83,6 +84,11 @@ module MetadataHarvester
       curl.ssl_verify_peer = false
       curl.perform
       JSON.parse(curl.body_str)['count']
+    rescue
+      @timeout *= 2
+      logger.warn("Parse Error. Retry in #{sleep}s")
+      sleep(@timeout)
+      retry
     end
 
     ##

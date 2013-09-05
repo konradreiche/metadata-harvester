@@ -12,7 +12,9 @@ module MetadataHarvester
     end
 
     def store(records)
-      File.open(@destination, 'a') { |file| JSON.dump(records, file) }
+      json_file = "#{@path}.json"
+      File.delete(json_file) if File.exists?(json_file)
+      File.open(json_file, 'a') { |file| JSON.dump(records, file) }
     end
 
     def download(url)

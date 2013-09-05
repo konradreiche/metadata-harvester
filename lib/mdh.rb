@@ -14,6 +14,7 @@ module MetadataHarvester
   def self.start
     options = Trollop::options do
       opt :compress, 'Compresses the data with Gzip afterwards'
+      opt :repository, 'Select a repository for harvesting', :type => :string
     end
 
     for repository in load_repositories[:CKAN]

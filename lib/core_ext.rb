@@ -1,3 +1,5 @@
+require 'json'
+
 module CoreExt
   module ClassMethods
 
@@ -12,7 +14,8 @@ module CoreExt
       elsif source.is_a?(Array)
         source.map { |item| parse_recursively(item) }
       elsif source.is_a?(String)
-        parse_recursively(JSON.parse(source)) if valid_json?(source)
+        return parse_recursively(JSON.parse(source)) if valid_json?(source)
+        source
       else
         source
       end

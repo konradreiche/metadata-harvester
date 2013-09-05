@@ -1,2 +1,2 @@
 #!/bin/sh
-ruby -Ilib bin/mdh
+ruby -Ilib bin/mdh $@
