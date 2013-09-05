@@ -7,23 +7,23 @@ module CoreExt
       elsif source.is_a?(Array)
         source.map { |item| parse item }
       else
-        result = JSON.parse(source)
-        parse_recursively(result)
-      rescue JSON::ParseError, TypeError
-        source = nil if source.is_a?(String)and source.empty?
-        source = nil if source.is_a?(Array) and source.empty?
-        source = nil if source.is_a?(Hash) and source.empty?
-        return source
+        begin
+          result = JSON.parse(source)
+          parse_recursively(result)
+        rescue JSON::ParserError, TypeError
+          source
+        end
       end
     end
-   
-    extend ClassMethods
-
-    def self.included(other)
-      other.extend(ClassMethods)
-    end    
 
   end
+
+  extend ClassMethods
+
+  def self.included(other)
+    other.extend(ClassMethods)
+  end    
+
 end
 
 JSON.send(:include, CoreExt)
