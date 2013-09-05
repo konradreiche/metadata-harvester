@@ -1,19 +1,28 @@
 module CoreExt
   module ClassMethods
 
+    ##
+    # Applies JSON.parse on every element.
+    # 
+    # Returns null on an invalid JSON string.
+    #
     def parse_recursively(source)
       if source.is_a?(Hash)
         source.each { |key, value| source[key] = parse_recursively(value) }
       elsif source.is_a?(Array)
-        source.map { |item| parse item }
+        source.map { |item| parse_recursively(item) }
+      elsif source.is_a?(String)
+        parse_recursively(JSON.parse(source)) if valid_json?(source)
       else
-        begin
-          result = JSON.parse(source)
-          parse_recursively(result)
-        rescue JSON::ParserError, TypeError
-          source
-        end
+        source
       end
+    end
+
+    def valid_json?(source)
+      JSON.parse(source)
+      true
+    rescue JSON::ParserError
+      false
     end
 
   end
