@@ -3,13 +3,9 @@ require 'curb'
 require 'logger'
 require 'open-uri'
 require 'json'
+require 'json_archiver'
 require 'sidekiq'
 require 'tire'
-require 'zipruby'
-require 'zlib'
-
-require_relative 'ckan'
-require_relative 'json_archiver'
 
 module MetadataHarvester
   include ActionView::Helpers::DateHelper
@@ -28,8 +24,10 @@ module MetadataHarvester
     # Starts the metadata harvesting procedure
     #
     def perform(repository, options)
-      @compress = compress
-      @archiver = JsonArchiver.new(source) if @archive
+      repository = repository.with_indifferent_access
+      id = repository[:name]
+      @compress = options[:compress]
+      @archiver = JsonArchiver.new(id)
       if repository.key?(:dump)
         download_dump(repository)
       else
@@ -42,7 +40,7 @@ module MetadataHarvester
     #
     def download_dump(repository)
       url = repository[:dump]
-      type = File.extname[1..-1]
+      type = File.extname(url)[1..-1]
       @archiver.download(url)
       @archiver.extract(type)
     end
@@ -53,7 +51,7 @@ module MetadataHarvester
     def download_records(repository)
       url = repository[:url]
       rows = repository[:rows]
-      steps = count(url).fdiv(limit).ceil
+      steps = count(url).fdiv(rows).ceil
 
       before = Time.new
       steps.times do |i|
@@ -87,7 +85,7 @@ module MetadataHarvester
       url = "#{url}/3/action/package_search"
       data = { rows: rows, start: i }
       curl = Curl.get(url, data)
-      response = JSON.parse_recusively(curl.body_str)
+      response = JSON.parse_recursively(curl.body_str)
       result = response['result']['results']
     rescue JSON::ParserError, Curl::Err::PartialFileError => e
       @timeout *= 2
@@ -95,5 +93,7 @@ module MetadataHarvester
       sleep(@timeout)
       retry
     end
+
+  end
 
 end

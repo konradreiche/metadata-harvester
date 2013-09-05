@@ -22,7 +22,7 @@ module MetadataHarvester
     for repository in load_repositories[:CKAN]
       catalog = load_repositories()
       catalog.each do |type, repositories|
-        repositories.each do |r|
+        repositories.each do |repository|
           Worker.perform_async(repository, options)
         end
       end
