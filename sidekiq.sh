@@ -1,2 +1,2 @@
 #!/bin/sh
-sidekiq -r ./lib/harvester.rb -t 0
+sidekiq -r ./lib/worker.rb -t 0

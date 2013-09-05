@@ -1,11 +1,16 @@
+require 'active_support/all'
 require 'action_view'
 require 'curb'
-require 'logger'
-require 'open-uri'
 require 'json'
-require 'json_archiver'
 require 'sidekiq'
-require 'tire'
+
+require_relative 'json_archiver'
+
+Sidekiq.configure_server do |config|
+  namespace = 'metadata-harvester'
+  url = 'redis://localhost:6379'
+  config.redis =  { namespace: namespace, url: url  }
+end
 
 module MetadataHarvester
   include ActionView::Helpers::DateHelper
@@ -26,8 +31,11 @@ module MetadataHarvester
     def perform(repository, options)
       repository = repository.with_indifferent_access
       id = repository[:name]
+      logger.info("Harvest #{id}")
+
       @compress = options[:compress]
       @archiver = JsonArchiver.new(id)
+
       if repository.key?(:dump)
         download_dump(repository)
       else
@@ -57,6 +65,7 @@ module MetadataHarvester
       steps.times do |i|
         records = query(url, rows, i)
         @archiver.store(records)
+
         now = Time.new
         elapsed = (now - before) * (steps - i + 1)
         eta = distance_of_time_in_words(before, before + elapsed)

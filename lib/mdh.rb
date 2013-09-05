@@ -1,7 +1,4 @@
 require 'active_support/all'
-require 'curb'
-require 'json'
-require 'tire'
 require 'trollop'
 require 'worker'
 require 'yaml'
@@ -23,7 +20,7 @@ module MetadataHarvester
       catalog = load_repositories()
       catalog.each do |type, repositories|
         repositories.each do |repository|
-          Worker.perform_async(repository, options)
+          MetadataHarvester::Worker.perform_async(repository, options)
         end
       end
     end
