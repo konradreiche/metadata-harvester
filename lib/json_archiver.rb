@@ -5,6 +5,10 @@ require 'zlib'
 module MetadataHarvester
   class JsonArchiver
 
+    Zip.setup do |c|
+      c.on_exists_proc = true
+    end
+
     def initialize(id)
       @directory = File.expand_path("../archive/#{id}", File.dirname(__FILE__))
       FileUtils.mkdir_p(@directory)
