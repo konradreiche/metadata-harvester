@@ -34,14 +34,15 @@ module MetadataHarvester
       id = repository[:name]
       logger.info("Harvest #{id}")
 
-      @compress = options[:compress]
       @archiver = JsonArchiver.new(id)
+      @options = options.with_indifferent_access
 
       if repository.key?(:dump)
         download_dump(repository)
       else
         download_records(repository)
       end
+      @archiver.compress if @options[:compress]
     end
 
     ##
@@ -50,6 +51,7 @@ module MetadataHarvester
     def download_dump(repository)
       url = repository[:dump]
       type = File.extname(url)[1..-1]
+
       @archiver.download(url)
       @archiver.extract(type)
     end
@@ -82,6 +84,7 @@ module MetadataHarvester
       curl = Curl::Easy.new
       curl.url = "#{url}/search/dataset"
       curl.ssl_verify_peer = false
+
       curl.perform
       JSON.parse(curl.body_str)['count']
     rescue
@@ -100,6 +103,7 @@ module MetadataHarvester
       url = "#{url}/3/action/package_search"
       data = { rows: rows, start: i }
       curl = Curl.get(url, data)
+
       response = JSON.parse_recursively(curl.body_str)
       result = response['result']['results']
     rescue JSON::ParserError, Curl::Err::PartialFileError => e
