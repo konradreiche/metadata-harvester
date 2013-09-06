@@ -20,6 +20,7 @@ module MetadataHarvester
     def download(url)
       Sidekiq.logger.info("Download #{url}")
       curl = Curl::Easy.new(url)
+      curl.ssl_verify_peer = false
       file = File.new(@path, 'w')
       curl.on_body { |data| file.write(data) }
       curl.perform
