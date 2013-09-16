@@ -1,4 +1,5 @@
 require 'fileutils'
+require 'yajl'
 require 'zip'
 require 'zlib'
 
@@ -15,16 +16,19 @@ module MetadataHarvester
     # Makes sure the archive path is available and sets the path variables.
     #
     def initialize(id)
+      @id = id
+      @date = Date.today
+
       @directory = File.expand_path("../archive/#{id}", File.dirname(__FILE__))
+      @path = "#{@directory}/#{@date}-#{id}"
       FileUtils.mkdir_p(@directory)
-      @path = "#{@directory}/#{Date.today}-#{id}"
     end
 
     ##
     # Writes a set of metadata records to the file system.
     #
     def store(records)
-      json_file = "#{@path}.json"
+      json_file = "#{@path}.raw.json"
       File.delete(json_file) if File.exists?(json_file)
       File.open(json_file, 'a') { |file| JSON.dump(records, file) }
     end
@@ -32,12 +36,14 @@ module MetadataHarvester
     ##
     # Downloads a metadata record dump.
     #
-    def download(url)
+    def download(url, type)
       Sidekiq.logger.info("Download #{url}")
+      file = File.new("#{@path}.#{type}", 'w')
+
       curl = Curl::Easy.new(url)
       curl.ssl_verify_peer = false
-      file = File.new(@path, 'w')
       curl.on_body { |data| file.write(data) }
+
       curl.perform
       file.close()
     end
@@ -49,13 +55,32 @@ module MetadataHarvester
       Sidekiq.logger.info("Extract #{@path}.#{type}")
       case type.to_sym
       when :gz
-        extract_gzip()
+        extract_gzip(type)
       when :zip
-        extract_zip()
+        extract_zip(type)
       else
         raise TypeError, "The filetype #{type} is unknown."
       end
-      File.delete(@path)
+      File.delete("#{@path}.#{type}")
+    end
+    
+    ##
+    # Wraps the result up by adding a meta-metadata structure around the
+    # harvested metadata. This structure contains identifier and date.
+    #
+    def wrap_up
+      raw = File.new("#{@path}.raw.json", 'r')
+      result = File.new("#{@path}.json", 'w')
+
+      parser = Yajl::Parser.new
+      metadata = parser.parse(raw)
+
+      data = { id: @id, date: @date, metadata: metadata}
+      Yajl::Encoder.encode(data, result)
+
+      raw.close()
+      result.close()
+      File.delete("#{@path}.raw.json")
     end
 
     ##
@@ -75,9 +100,9 @@ module MetadataHarvester
     ##
     # Routine for extracting a GZip archive on the file system.
     #
-    def extract_gzip
-      Zlib::GzipReader.open(@path) do |gz|
-        File.open("#{@path}.json", 'w') do |g|
+    def extract_gzip(type)
+      Zlib::GzipReader.open("#{@path}.#{type}") do |gz|
+        File.open("#{@path}.raw.json", 'w') do |g|
           IO.copy_stream(gz, g)
         end
       end
@@ -86,8 +111,8 @@ module MetadataHarvester
     ##
     # Routine for extracting a Zip archive on the file system.
     #
-    def extract_zip
-      Zip::File.open(@path).first.extract("#{@path}.json")
+    def extract_zip(type)
+      Zip::File.open("#{@path}.#{type}").first.extract("#{@path}.raw.json")
     end
 
   end

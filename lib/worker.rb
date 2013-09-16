@@ -42,6 +42,7 @@ module MetadataHarvester
       else
         download_records(repository)
       end
+      @archiver.wrap_up()
       @archiver.compress if @options[:compress]
     end
 
@@ -52,7 +53,7 @@ module MetadataHarvester
       url = repository[:dump]
       type = File.extname(url)[1..-1]
 
-      @archiver.download(url)
+      @archiver.download(url, type)
       @archiver.extract(type)
     end
 

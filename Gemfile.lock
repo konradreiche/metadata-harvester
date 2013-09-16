@@ -56,6 +56,7 @@ GEM
     timers (1.1.0)
     trollop (2.0)
     tzinfo (0.3.37)
+    yajl-ruby (1.1.0)
 
 PLATFORMS
   ruby
@@ -70,3 +71,4 @@ DEPENDENCIES
   rubyzip
   sidekiq
   trollop
+  yajl-ruby
