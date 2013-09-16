@@ -18,7 +18,7 @@ _yardoc
 doc/
 
 # Harvesting output directory
-archive/
+archives/
 
 # Output for starting the harvester with nohup
 nohup.out
