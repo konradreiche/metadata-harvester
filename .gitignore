@@ -19,3 +19,6 @@ doc/
 
 # Harvesting output directory
 archive/
+
+# Output for starting the harvester with nohup
+nohup.out
