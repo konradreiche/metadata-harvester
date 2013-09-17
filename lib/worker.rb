@@ -88,7 +88,7 @@ module MetadataHarvester
 
       curl.perform
       JSON.parse(curl.body_str)['count']
-    rescue
+    rescue JSON::ParserError, Curl::Err::PartialFileError => e
       @timeout *= 2
       logger.warn("Parse Error. Retry in #{sleep}s")
       sleep(@timeout)

@@ -1,30 +1,50 @@
-CKAN:
-    - name: GovData.de
+name: CKAN Repositories
+
+repositories:
+    - id: GovData.de
+      name: GovData.de
       url:  https://www.govdata.de/ckan/api
+      type: CKAN
       location: Berlin, Germany
       dump: https://www.govdata.de/ckan/dump/govdata.de-daily.json.gz
  
-    - name: data.gov.uk
+    - id: data.gov.uk
+      name: data.gov.uk
       url: http://data.gov.uk/api
+      type: CKAN
       location: London, UK
       dump: http://data.gov.uk/data/dumps/data.gov.uk-ckan-meta-data-latest.json.zip
 
-    - name: publicdata.eu
+    - id: publicdata.eu
+      name: publicdata.eu
       url: http://publicdata.eu/api
+      type: CKAN
       location: Brussels, Belgium
-      rows: 100000
+      rows: 1000
 
-    - name: catalogodatos.gub.uy
+    - id: catalogodatos.gub.uy
+      name: catalogodatos.gub.uy
       url: https://catalogodatos.gub.uy/api
+      type: CKAN
       location: Montevideo, Uruguay
-      rows: 100000
+      rows: 1000
 
-    - name: data.qld.gov.au
+    - id: data.qld.gov.au
+      name: data.qld.gov.au
       url: https://data.qld.gov.au/api
+      type: CKAN
       location: Queensland, Australia
-      rows: 100000
+      rows: 1000
 
-    - name: catalog.data.gov
+    - id: catalog.data.gov
+      name: catalog.data.gov
       url: http://catalog.data.gov/api
-      location: USA, Washington, DC
-      rows: 100000
+      type: CKAN
+      location: Washington, DC, USA
+      rows: 1000
+
+    - id: opendata.admin.ch
+      name: opendata.admin.ch
+      url: http://opendata.admin.ch/api
+      type: CKAN
+      location: Bern, Switzerland
