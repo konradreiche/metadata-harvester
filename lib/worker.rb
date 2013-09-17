@@ -19,13 +19,13 @@ module MetadataHarvester
     include ActionView::Helpers::DateHelper
     include Sidekiq::Worker
 
-    TIMEOUT_CAP = 600
+    TIMEOUT_CAP = 1200
 
     ##
     # Initializes basic attributes.
     #
     def initialize
-      @timeout = 30
+      @timeout = 60
     end
 
     ##
@@ -66,11 +66,12 @@ module MetadataHarvester
     def download_records(repository)
       url = repository[:url]
       rows = repository[:rows]
+      id = repository[:id]
       steps = count(url).fdiv(rows).ceil
 
       before = Time.new
       steps.times do |i|
-        records = query(url, rows, i)
+        records = query(url, rows, i, id)
         @archiver.store(records)
 
         now = Time.new
@@ -92,9 +93,7 @@ module MetadataHarvester
       curl.perform
       JSON.parse(curl.body_str)['count']
     rescue JSON::ParserError, Curl::Err::PartialFileError => e
-      @timeout *= 2
-      logger.warn("Parse Error. Retry in #{sleep}s")
-      sleep(@timeout)
+      timeout(id)
       retry
     end
 
@@ -103,7 +102,7 @@ module MetadataHarvester
     #
     # Uses the CKAN Search API.
     #
-    def query(url, rows, i)
+    def query(url, rows, i, id)
       url = "#{url}/3/action/package_search"
       data = { rows: rows, start: i }
       curl = Curl.get(url, data)
@@ -111,10 +110,18 @@ module MetadataHarvester
       response = JSON.parse_recursively(curl.body_str)
       result = response['result']['results']
     rescue JSON::ParserError, Curl::Err::PartialFileError => e
-      logger.warn("Parse Error. Retry in #{@timeout}s")
-      sleep(@timeout)
-      @timeout *= 2 if @timeout < TIMEOUT_CAP
+      timeout(id)
       retry
+    end
+
+    ##
+    # Timeout method used to wait a timespan before the next request.
+    #
+    def timeout(id)
+      time = time_ago_in_words(@timeout.seconds.from_now)
+      logger.warn("[#{id}] Parse Error. Retry in #{time}")
+      sleep(@timeout)
+      @timeout *= 2 # if @timeout < TIMEOUT_CAP
     end
 
   end
