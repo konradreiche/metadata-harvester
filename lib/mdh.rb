@@ -17,11 +17,9 @@ module MetadataHarvester
     end
 
     catalog = load_repositories()
-    catalog.each do |type, repositories|
-      repositories.each do |repository|
-        next if skip?(options, repository)
-        MetadataHarvester::Worker.perform_async(repository, options)
-      end
+    catalog[:repositories].each do |repository|
+      next if skip?(options, repository)
+      MetadataHarvester::Worker.perform_async(repository, options)
     end
   end
 
