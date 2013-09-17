@@ -48,3 +48,4 @@ repositories:
       url: http://opendata.admin.ch/api
       type: CKAN
       location: Bern, Switzerland
+      rows: 1000
