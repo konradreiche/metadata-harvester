@@ -108,7 +108,6 @@ module MetadataHarvester
       response = JSON.parse_recursively(curl.body_str)
       result = response['result']['results']
     rescue JSON::ParserError, Curl::Err::PartialFileError => e
-      require 'pry'; binding.pry
       @timeout *= 2
       logger.warn("Parse Error. Retry in #{sleep}s")
       sleep(@timeout)
