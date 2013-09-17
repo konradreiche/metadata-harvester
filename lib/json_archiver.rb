@@ -81,7 +81,7 @@ module MetadataHarvester
                date: @date,
                type: @type,
                count: count,
-               record: metadata }
+               metadata: metadata }
 
       Yajl::Encoder.encode(data, result)
 

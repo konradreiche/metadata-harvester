@@ -19,6 +19,8 @@ module MetadataHarvester
     include ActionView::Helpers::DateHelper
     include Sidekiq::Worker
 
+    TIMEOUT_CAP = 600
+
     ##
     # Initializes basic attributes.
     #
@@ -109,10 +111,9 @@ module MetadataHarvester
       response = JSON.parse_recursively(curl.body_str)
       result = response['result']['results']
     rescue JSON::ParserError, Curl::Err::PartialFileError => e
-      @timeout *= 2
-      logger.warn("Parse Error. Retry in #{sleep}s")
-      curl.close()
+      logger.warn("Parse Error. Retry in #{@timeout}s")
       sleep(@timeout)
+      @timeout *= 2 if @timeout < TIMEOUT_CAP
       retry
     end
 
