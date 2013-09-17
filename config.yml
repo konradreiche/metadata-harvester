@@ -1,0 +1,8 @@
+# Sidekiq configuration
+---
+:daemon: true
+:concurrency: 6
+:logfile: ./log/sidekiq.log
+:pidfile: ./tmp/pids/sidekiq.pid
+:require: ./lib/worker.rb
+:timeout: 0

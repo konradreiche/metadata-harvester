@@ -1,4 +1,6 @@
 *.gem
+*.log
+*.pid
 *.rbc
 .bundle
 .config
@@ -10,7 +12,6 @@ rdoc
 spec/reports
 test/tmp
 test/version_tmp
-tmp
 
 # YARD artifacts
 .yardoc
