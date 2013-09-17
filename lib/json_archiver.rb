@@ -15,8 +15,9 @@ module MetadataHarvester
     #
     # Makes sure the archive path is available and sets the path variables.
     #
-    def initialize(id)
+    def initialize(id, type)
       @id = id
+      @type = type
       @date = Date.today
 
       @directory = File.expand_path("../archives/#{id}", File.dirname(__FILE__))
@@ -76,7 +77,12 @@ module MetadataHarvester
       metadata = parser.parse(raw)
       count = metadata.length
 
-      data = { id: @id, date: @date, count: count, metadata: metadata }
+      data = { repository: @id,
+               date: @date,
+               type: @type,
+               count: count,
+               record: metadata }
+
       Yajl::Encoder.encode(data, result)
 
       raw.close()

@@ -23,7 +23,7 @@ module MetadataHarvester
     # Initializes basic attributes.
     #
     def initialize
-      @timeout = 1
+      @timeout = 30
     end
 
     ##
@@ -32,9 +32,10 @@ module MetadataHarvester
     def perform(repository, options)
       repository = repository.with_indifferent_access
       id = repository[:name]
+      type = repository[:type]
       logger.info("Harvest #{id}")
 
-      @archiver = JsonArchiver.new(id)
+      @archiver = JsonArchiver.new(id, type)
       @options = options.with_indifferent_access
 
       if repository.key?(:dump)
@@ -110,6 +111,7 @@ module MetadataHarvester
     rescue JSON::ParserError, Curl::Err::PartialFileError => e
       @timeout *= 2
       logger.warn("Parse Error. Retry in #{sleep}s")
+      curl.close()
       sleep(@timeout)
       retry
     end
