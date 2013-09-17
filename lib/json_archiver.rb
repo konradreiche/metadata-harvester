@@ -22,16 +22,19 @@ module MetadataHarvester
 
       @directory = File.expand_path("../archives/#{id}", File.dirname(__FILE__))
       @path = "#{@directory}/#{@date}-#{id}"
+      @json_file = "#{@path}.raw.json"
+
       FileUtils.mkdir_p(@directory)
+      File.delete(@json_file) if File.exists?(@json_file)
     end
 
     ##
     # Writes a set of metadata records to the file system.
     #
+    # This method is called in an iterative fashion.
+    #
     def store(records)
-      json_file = "#{@path}.raw.json"
-      File.delete(json_file) if File.exists?(json_file)
-      File.open(json_file, 'a') { |file| JSON.dump(records, file) }
+      File.open(@json_file, 'a') { |file| JSON.dump(records, file) }
     end
 
     ##
@@ -70,11 +73,14 @@ module MetadataHarvester
     # harvested metadata. This structure contains identifier and date.
     #
     def wrap_up
-      raw = File.new("#{@path}.raw.json", 'r')
+      raw = File.new(@json_file, 'r')
       result = File.new("#{@path}.json", 'w')
 
+      metadata = []
       parser = Yajl::Parser.new
-      metadata = parser.parse(raw)
+      parser.on_parse_complete = Proc.new { |obj| metadata += obj }
+
+      parser.parse(raw)
       count = metadata.length
 
       data = { repository: @id,
