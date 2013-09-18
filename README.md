@@ -1,5 +1,7 @@
 # Metadata Harvester
 
+[![Build Status](https://travis-ci.org/platzhirsch/metadata-harvester.png)](http://travis-ci.org/platzhirsch/metadata-harvester)
+
 A harvesting framework for accumulating different metadata.
 
 ## Getting Started
