@@ -19,7 +19,7 @@ module MetadataHarvester
     include ActionView::Helpers::DateHelper
     include Sidekiq::Worker
 
-    TIMEOUT_CAP = 1200
+    TIMEOUT_CAP = 240
 
     ##
     # Initializes basic attributes.
@@ -121,7 +121,7 @@ module MetadataHarvester
       time = time_ago_in_words(@timeout.seconds.from_now)
       logger.warn("[#{id}] Parse Error. Retry in #{time}")
       sleep(@timeout)
-      @timeout *= 2 # if @timeout < TIMEOUT_CAP
+      @timeout *= 2 if @timeout < TIMEOUT_CAP
     end
 
   end
