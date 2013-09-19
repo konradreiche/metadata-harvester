@@ -22,7 +22,7 @@ module MetadataHarvester
 
       @directory = File.expand_path("../archives/#{id}", File.dirname(__FILE__))
       @path = "#{@directory}/#{@date}-#{id}"
-      @json_file = "#{@path}.raw.json"
+      @json_file = "#{@path}.raw.json"  # TODO: rename to @json_raw_file
 
       FileUtils.mkdir_p(@directory)
       File.delete(@json_file) if File.exists?(@json_file)
@@ -41,7 +41,7 @@ module MetadataHarvester
     # Downloads a metadata record dump.
     #
     def download(url, type)
-      Sidekiq.logger.info("Download #{url}")
+      Sidekiq.logger.info("#{@id} - Download #{url}")
       file = File.new("#{@path}.#{type}", 'w')
 
       curl = Curl::Easy.new(url)
@@ -56,7 +56,7 @@ module MetadataHarvester
     # Extracts a downloaded metadata record if the format is supported.
     #
     def extract(type)
-      Sidekiq.logger.info("Extract #{@path}.#{type}")
+      Sidekiq.logger.info("#{@id} - Extract #{@path}.#{type}")
       case type.to_sym
       when :gz
         extract_gzip(type)
@@ -93,7 +93,7 @@ module MetadataHarvester
 
       raw.close()
       result.close()
-      File.delete("#{@path}.raw.json")
+      File.delete(@json_file) if File.exists?(@json_file)
     end
 
     ##

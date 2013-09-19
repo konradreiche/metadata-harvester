@@ -6,6 +6,7 @@ require 'sidekiq'
 
 require_relative 'core_ext'
 require_relative 'json_archiver'
+require_relative 'prettier'
 
 Sidekiq.configure_server do |config|
   namespace = 'metadata-harvester'
@@ -19,13 +20,15 @@ module MetadataHarvester
     include ActionView::Helpers::DateHelper
     include Sidekiq::Worker
 
-    TIMEOUT_CAP = 240
+    TIMEOUT_LOWER_CAP = 30.0
+    TIMEOUT_UPPER_CAP = 600.0
 
     ##
     # Initializes basic attributes.
     #
     def initialize
-      @timeout = 60
+      @timeout = TIMEOUT_LOWER_CAP
+      logger.formatter = Prettier.new
     end
 
     ##
@@ -33,11 +36,11 @@ module MetadataHarvester
     #
     def perform(repository, options)
       repository = repository.with_indifferent_access
-      id = repository[:name]
+      @id = repository[:name]
       type = repository[:type]
-      logger.info("Harvest #{id}")
 
-      @archiver = JsonArchiver.new(id, type)
+      logger.info("#{@id} - Harvest #{@id}")
+      @archiver = JsonArchiver.new(@id, type)
       @options = options.with_indifferent_access
 
       if repository.key?(:dump)
@@ -77,7 +80,7 @@ module MetadataHarvester
         now = Time.new
         elapsed = (now - before) * (steps - i + 1)
         eta = distance_of_time_in_words(before, before + elapsed)
-        logger.info("#{i + 1} of #{steps} - #{url} ~ #{eta}")
+        logger.info("#{@id} - #{i + 1} of #{steps} - #{url} ~ #{eta}")
         before = now
       end
     end
@@ -91,10 +94,14 @@ module MetadataHarvester
       curl.ssl_verify_peer = false
 
       curl.perform
-      JSON.parse(curl.body_str)['count']
+      content = curl.body_str
+      
+      return JSON.parse(content)['count']
     rescue JSON::ParserError, Curl::Err::PartialFileError => e
-      timeout(id)
+      timeout(id, curl)
       retry
+    ensure
+      curl.close() unless curl.nil?
     end
 
     ##
@@ -107,11 +114,17 @@ module MetadataHarvester
       data = { rows: rows, start: i }
       curl = Curl.get(url, data)
 
-      response = JSON.parse_recursively(curl.body_str)
+      content = curl.body_str
+      response = JSON.parse_recursively(content)
       result = response['result']['results']
+
+      @timeout /= 2 if @timeout > TIMEOUT_UPPER_CAP
+      return result
     rescue JSON::ParserError, Curl::Err::PartialFileError => e
-      timeout(id)
+      timeout(id, curl)
       retry
+    ensure
+      curl.close() unless curl.nil?
     end
 
     ##
@@ -119,9 +132,10 @@ module MetadataHarvester
     #
     def timeout(id)
       time = time_ago_in_words(@timeout.seconds.from_now)
-      logger.warn("[#{id}] Parse Error. Retry in #{time}")
+      logger.warn("#{@id} - Response: Parse Error. Retry in #{time}")
+
       sleep(@timeout)
-      @timeout *= 2 if @timeout < TIMEOUT_CAP
+      @timeout *= 2 if @timeout < TIMEOUT_UPPER_CAP
     end
 
   end
