@@ -41,9 +41,13 @@ module MetadataHarvester
     ##
     # Downloads a metadata record dump.
     #
+    # @return [String] the filename of the retrieved dump
+    #
     def download(url, type)
-      Sidekiq.logger.info("#{@id} - Download #{url}")
-      file = File.new("#{@path}.#{type}", 'w')
+      Sidekiq.logger.info("Download #{url}")
+
+      filename = "#{@path}.dump.#{type}"
+      file = File.new(filename, 'w')
 
       curl = Curl::Easy.new(url)
       curl.ssl_verify_peer = false
@@ -51,27 +55,27 @@ module MetadataHarvester
 
       curl.perform
       file.close()
+      return filename
     end
 
     ##
     # Extracts a downloaded metadata record if the format is supported.
     #
-    def extract(type)
-      Sidekiq.logger.info("#{@id} - Extract #{@path}.#{type}")
+    def extract(filename, type)
+      Sidekiq.logger.info("Extract #{filename}")
+      require 'pry'; binding.pry
+
       case type.to_sym
       when :gz
-        extract_gzip(type)
+        extract_gzip(filename, type)
       when :zip
-        extract_zip(type)
+        extract_zip(filename, type)
       else
         raise TypeError, "The filetype #{type} is unknown."
       end
-      File.delete("#{@path}.#{type}")
+      File.delete(filename)
     end
-    
-    ##
-    # Compresses the JSON files afterwards.
-    #
+
     def compress
       json_file = "#{@path}.json"
       gunzip_file = "#{@path}.gz"
@@ -86,10 +90,11 @@ module MetadataHarvester
     ##
     # Routine for extracting a GZip archive on the file system.
     #
-    def extract_gzip(type)
-      Zlib::GzipReader.open("#{@path}.#{type}") do |gz|
-        File.open("#{@path}.raw.json", 'w') do |g|
-          IO.copy_stream(gz, g)
+    def extract_gzip(filename, type)
+      Zlib::GzipWriter.open(@gz_file) do |writer|
+        writer.write(Yajl::Encoder.encode(@header))
+        Zlib::GzipReader.open(filename) do |reader|
+          IO.copy_stream(reader, writer)
         end
       end
     end
