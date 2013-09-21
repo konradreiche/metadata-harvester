@@ -7,6 +7,7 @@ require 'sidekiq'
 require_relative 'core_ext'
 require_relative 'json_archiver'
 require_relative 'prettier'
+require_relative 'yajl_ext'
 
 Sidekiq.configure_server do |config|
   namespace = 'metadata-harvester'
@@ -39,7 +40,9 @@ module MetadataHarvester
       @id = repository[:name]
       type = repository[:type]
 
+      logger.formatter.add(@id)
       logger.info("#{@id} - Harvest #{@id}")
+
       @archiver = JsonArchiver.new(@id, type)
       @options = options.with_indifferent_access
 
@@ -53,7 +56,7 @@ module MetadataHarvester
     end
 
     ##
-    #  Downloads and extracts the dump of a repository.
+    # Downloads and extracts the dump of a repository.
     #
     def download_dump(repository)
       url = repository[:dump]
