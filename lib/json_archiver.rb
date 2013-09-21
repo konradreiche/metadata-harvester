@@ -70,31 +70,6 @@ module MetadataHarvester
     end
     
     ##
-    # Wraps the result up by adding a meta-metadata structure around the
-    # harvested metadata. This structure contains identifier and date.
-    #
-    def wrap_up
-      raw = File.new(@json_file, 'r')
-      result = File.new("#{@path}.json", 'w')
-
-
-      parser.parse(raw)
-      count = metadata.length
-
-      data = { repository: @id,
-               date: @date,
-               type: @type,
-               count: count,
-               metadata: metadata }
-
-      Yajl::Encoder.encode(data, result)
-
-      raw.close()
-      result.close()
-      File.delete(@json_file) if File.exists?(@json_file)
-    end
-
-    ##
     # Compresses the JSON files afterwards.
     #
     def compress

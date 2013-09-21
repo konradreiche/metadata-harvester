@@ -42,7 +42,7 @@ module MetadataHarvester
       type = repository[:type]
 
       logger.formatter.add(id)
-      logger.info("Harvest #{id}")
+      logger.info("Start harvester")
 
       date = Date.today
       count = count(url)
@@ -55,7 +55,6 @@ module MetadataHarvester
       else
         download_records(repository)
       end
-      @archiver.wrap_up()
       @archiver.compress if @options[:compress]
     end
 
@@ -136,7 +135,7 @@ module MetadataHarvester
     #
     def timeout(id)
       time = time_ago_in_words(@timeout.seconds.from_now)
-      logger.warn("#{@id} - Response: Parse Error. Retry in #{time}")
+      logger.warn("Response: Parse Error. Retry in #{time}")
 
       sleep(@timeout)
       @timeout *= 2 if @timeout < TIMEOUT_UPPER_CAP
@@ -145,6 +144,8 @@ module MetadataHarvester
     private
     ##
     # Logs the estimated time of arrival.
+    #
+    # @return [Time] the current time
     #
     def eta(before, steps, i, url)
       now = Time.new

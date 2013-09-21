@@ -30,6 +30,10 @@ module Yajl
         Yajl::Encoder.new.encode(obj, new(io))
       end
 
+      def write(string)
+        super(Yajl::Encoder.encode(string))
+      end
+
     end
   end
 end
