@@ -63,9 +63,7 @@ module MetadataHarvester
     def download_dump(repository)
       url = repository[:dump]
       type = File.extname(url)[1..-1]
-
-      filename = @archiver.download(url, type)
-      @archiver.extract(filename, type)
+      @archiver.wrap(@archiver.download(url, type), type)
     end
 
     ##

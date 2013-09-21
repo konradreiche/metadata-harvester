@@ -61,15 +61,14 @@ module MetadataHarvester
     ##
     # Extracts a downloaded metadata record if the format is supported.
     #
-    def extract(filename, type)
+    def wrap(filename, type)
       Sidekiq.logger.info("Extract #{filename}")
-      require 'pry'; binding.pry
 
       case type.to_sym
       when :gz
-        extract_gzip(filename, type)
+        wrap_gzip(filename)
       when :zip
-        extract_zip(filename, type)
+        wrap_zip(filename)
       else
         raise TypeError, "The filetype #{type} is unknown."
       end
@@ -90,7 +89,7 @@ module MetadataHarvester
     ##
     # Routine for extracting a GZip archive on the file system.
     #
-    def extract_gzip(filename, type)
+    def wrap_gzip(filename)
       Zlib::GzipWriter.open(@gz_file) do |writer|
         writer.write(Yajl::Encoder.encode(@header))
         Zlib::GzipReader.open(filename) do |reader|
@@ -102,9 +101,16 @@ module MetadataHarvester
     ##
     # Routine for extracting a Zip archive on the file system.
     #
-    def extract_zip(type)
-      Zip::File.open("#{@path}.#{type}").first.extract("#{@path}.raw.json")
+    def wrap_zip(filename)
+      Zlib::GzipWriter.open(@gz_file) do |writer|
+        writer.write(Yajl::Encoder.encode(@header))
+        Zip::InputStream.open(filename) do |reader|
+          reader.get_next_entry
+          IO.copy_stream(reader, writer)
+        end
+      end
     end
 
   end
+
 end
