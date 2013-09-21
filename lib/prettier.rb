@@ -6,7 +6,8 @@ module MetadataHarvester
     end
 
     def call(severity, time, program_name, message)
-      id = " #{Thread.current[:__harvester_id__]}"
+      id = Thread.current[:__harvester_id__]
+      id = " #{id}" unless id.nil?
       "#{time.strftime("%c")}#{id} [#{severity}] #{message}\n" 
     end
 
