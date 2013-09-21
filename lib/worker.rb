@@ -7,7 +7,6 @@ require 'sidekiq'
 require_relative 'core_ext'
 require_relative 'json_archiver'
 require_relative 'prettier'
-require_relative 'yajl_ext'
 
 Sidekiq.configure_server do |config|
   namespace = 'metadata-harvester'
@@ -37,13 +36,18 @@ module MetadataHarvester
     #
     def perform(repository, options)
       repository = repository.with_indifferent_access
-      @id = repository[:name]
+
+      id = repository[:id]
+      url = repository[:url]
       type = repository[:type]
 
-      logger.formatter.add(@id)
-      logger.info("#{@id} - Harvest #{@id}")
+      logger.formatter.add(id)
+      logger.info("Harvest #{id}")
 
-      @archiver = JsonArchiver.new(@id, type)
+      date = Date.today
+      count = count(url)
+
+      @archiver = JsonArchiver.new(id, type, date, count)
       @options = options.with_indifferent_access
 
       if repository.key?(:dump)
@@ -75,16 +79,13 @@ module MetadataHarvester
       id = repository[:id]
       steps = count(url).fdiv(rows).ceil
 
-      before = Time.new
-      steps.times do |i|
-        records = query(url, rows, i, id)
-        @archiver.store(records)
-
-        now = Time.new
-        elapsed = (now - before) * (steps - i + 1)
-        eta = distance_of_time_in_words(before, before + elapsed)
-        logger.info("#{@id} - #{i + 1} of #{steps} - #{url} ~ #{eta}")
-        before = now
+      @archiver.store do |writer|
+        before = Time.new
+        steps.times do |i|
+          records = query(url, rows, i, id)
+          writer.write(records)
+          before = eta(before, steps, i, url)
+        end
       end
     end
 
@@ -140,7 +141,18 @@ module MetadataHarvester
       sleep(@timeout)
       @timeout *= 2 if @timeout < TIMEOUT_UPPER_CAP
     end
-
+    
+    private
+    ##
+    # Logs the estimated time of arrival.
+    #
+    def eta(before, steps, i, url)
+      now = Time.new
+      elapsed = (now - before) * (steps - i + 1)
+      eta = distance_of_time_in_words(before, before + elapsed)
+      logger.info("#{i + 1} of #{steps} - #{url} ~ #{eta}")
+      return now
+    end
   end
 
 end

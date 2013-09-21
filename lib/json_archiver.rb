@@ -3,6 +3,8 @@ require 'yajl'
 require 'zip'
 require 'zlib'
 
+require_relative 'yajl_ext'
+
 module MetadataHarvester
   class JsonArchiver
 
@@ -15,26 +17,25 @@ module MetadataHarvester
     #
     # Makes sure the archive path is available and sets the path variables.
     #
-    def initialize(id, type)
-      @id = id
-      @type = type
-      @date = Date.today
+    def initialize(id, type, date, count)
+      @header = { repository: id, type: type, date: date, count: count }
+      directory = File.expand_path("../archives/#{id}", File.dirname(__FILE__))
 
-      @directory = File.expand_path("../archives/#{id}", File.dirname(__FILE__))
-      @path = "#{@directory}/#{@date}-#{id}"
-      @json_file = "#{@path}.raw.json"  # TODO: rename to @json_raw_file
+      @path = "#{directory}/#{date}-#{id}"
+      @gz_file = "#{@path}.raw.json.gz"
 
-      FileUtils.mkdir_p(@directory)
-      File.delete(@json_file) if File.exists?(@json_file)
+      File.delete(@gz_file) if File.exists?(@gz_file)
+      FileUtils.mkdir_p(directory)
     end
 
-    ##
-    # Writes a set of metadata records to the file system.
-    #
-    # This method is called in an iterative fashion.
-    #
-    def store(records)
-      File.open(@json_file, 'a') { |file| JSON.dump(records, file) }
+    def store
+      gz = File.new(@gz_file, 'w')
+      writer = Yajl::Gzip::StreamWriter.new(gz)
+      writer.write(@header)
+
+      yield writer
+
+      writer.close()
     end
 
     ##
@@ -76,9 +77,6 @@ module MetadataHarvester
       raw = File.new(@json_file, 'r')
       result = File.new("#{@path}.json", 'w')
 
-      metadata = []
-      parser = Yajl::Parser.new
-      parser.on_parse_complete = Proc.new { |obj| metadata += obj }
 
       parser.parse(raw)
       count = metadata.length
