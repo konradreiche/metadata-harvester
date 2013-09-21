@@ -98,7 +98,7 @@ module MetadataHarvester
 
       return JSON.parse(content)['count']
     rescue JSON::ParserError, Curl::Err::PartialFileError => e
-      timeout(id, curl)
+      timeout(id)
       retry
     ensure
       curl.close() unless curl.nil?
@@ -121,7 +121,7 @@ module MetadataHarvester
 
       return result
     rescue JSON::ParserError, Curl::Err::PartialFileError => e
-      timeout(id, curl)
+      timeout(id)
       retry
     ensure
       curl.close() unless curl.nil?
