@@ -55,7 +55,7 @@ module MetadataHarvester
 
       curl.perform
       file.close()
-      return filename
+      yield filename, type
     end
 
     ##
@@ -73,17 +73,6 @@ module MetadataHarvester
         raise TypeError, "The filetype #{type} is unknown."
       end
       File.delete(filename)
-    end
-
-    def compress
-      json_file = "#{@path}.json"
-      gunzip_file = "#{@path}.gz"
-      Zlib::GzipWriter.open(gunzip_file) do |gz|
-        File.open(json_file, 'r') do |g|
-          IO.copy_stream(g, gz)
-        end
-      end
-      File.delete(json_file)
     end
 
     ##

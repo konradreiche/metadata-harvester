@@ -63,7 +63,9 @@ module MetadataHarvester
     def download_dump(repository)
       url = repository[:dump]
       type = File.extname(url)[1..-1]
-      @archiver.wrap(@archiver.download(url, type), type)
+      @archiver.download(url, type) do |target, type|
+        @archiver.wrap(target, type)
+      end
     end
 
     ##
@@ -79,6 +81,7 @@ module MetadataHarvester
         before = Time.new
         steps.times do |i|
           records = query(url, rows, i, id)
+          records = unify(records)
           writer.write(records)
           before = eta(before, steps, i, url)
         end
@@ -89,13 +92,10 @@ module MetadataHarvester
     # Retrieve the number of total metadata records.
     #
     def count(url)
-      curl = Curl::Easy.new
-      curl.url = "#{url}/search/dataset"
-      curl.ssl_verify_peer = false
-
+      curl = curl("#{url}/search/dataset")
       curl.perform
       content = curl.body_str
-      
+
       return JSON.parse(content)['count']
     rescue JSON::ParserError, Curl::Err::PartialFileError => e
       timeout(id, curl)
@@ -110,15 +110,15 @@ module MetadataHarvester
     # Uses the CKAN Search API.
     #
     def query(url, rows, i, id)
-      url = "#{url}/3/action/package_search"
       data = { rows: rows, start: i }
-      curl = Curl.get(url, data)
+      curl = curl("#{url}/3/action/package_search", data)
+      curl.perform
 
       content = curl.body_str
       response = JSON.parse_recursively(content)
       result = response['result']['results']
-
       @timeout /= 2 if @timeout > TIMEOUT_UPPER_CAP
+
       return result
     rescue JSON::ParserError, Curl::Err::PartialFileError => e
       timeout(id, curl)
@@ -137,6 +137,13 @@ module MetadataHarvester
       sleep(@timeout)
       @timeout *= 2 if @timeout < TIMEOUT_UPPER_CAP
     end
+
+    def unify(records)
+      records = records.each do |record|
+        record['groups'] = record['groups'].map { |group| group['name'] }
+        record['groups'] = record['tags'].map { |tag| tag['name'] }
+      end
+    end
     
     private
     ##
@@ -148,9 +155,20 @@ module MetadataHarvester
       now = Time.new
       elapsed = (now - before) * (steps - i + 1)
       eta = distance_of_time_in_words(before, before + elapsed)
+
       logger.info("#{i + 1} of #{steps} - #{url} ~ #{eta}")
       return now
     end
+
+    def curl(url, parameter={})
+      curl = Curl::Easy.new
+      curl.url = Curl::urlalize(url, parameter)
+      curl.ssl_verify_peer = false
+      curl.follow_location = true
+
+      return curl
+    end
+
   end
 
 end
