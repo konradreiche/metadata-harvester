@@ -98,7 +98,7 @@ module MetadataHarvester
 
       return JSON.parse(content)['count']
     rescue JSON::ParserError, Curl::Err::PartialFileError => e
-      timeout(id)
+      timeout()
       retry
     ensure
       curl.close() unless curl.nil?
@@ -121,7 +121,7 @@ module MetadataHarvester
 
       return result
     rescue JSON::ParserError, Curl::Err::PartialFileError => e
-      timeout(id)
+      timeout()
       retry
     ensure
       curl.close() unless curl.nil?
@@ -130,7 +130,7 @@ module MetadataHarvester
     ##
     # Timeout method used to wait a timespan before the next request.
     #
-    def timeout(id)
+    def timeout
       time = time_ago_in_words(@timeout.seconds.from_now)
       logger.warn("Response: Parse Error. Retry in #{time}")
 
