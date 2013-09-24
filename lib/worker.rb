@@ -144,7 +144,7 @@ module MetadataHarvester
     def unify(records)
       records = records.each do |record|
         record['groups'] = record['groups'].map { |group| group['name'] }
-        record['groups'] = record['tags'].map { |tag| tag['name'] }
+        record['tags'] = record['tags'].map { |tag| tag['name'] }
       end
     end
     
