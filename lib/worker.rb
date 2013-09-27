@@ -81,10 +81,9 @@ module MetadataHarvester
         before = Time.new
         steps.times do |i|
           records = query(url, rows, i, id)
-          records = unify(records)
 
+          records = unify(records)
           writer.write(records)
-          writer.flush
 
           before = eta(before, steps, i, url)
         end

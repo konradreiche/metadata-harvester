@@ -31,6 +31,7 @@ module MetadataHarvester
     def store
       gz = File.new(@gz_file, 'w')
       writer = Yajl::Gzip::StreamWriter.new(gz)
+      writer.sync = true
       writer.write(@header)
 
       yield writer
