@@ -100,7 +100,8 @@ module MetadataHarvester
       content = curl.body_str
 
       return JSON.parse(content)['count']
-    rescue JSON::ParserError, Curl::Err::PartialFileError => e
+    rescue JSON::ParserError, Curl::Err::ConnectionFailed, 
+      Curl::Err::PartialFileError => e
       timeout()
       retry
     ensure
@@ -123,7 +124,8 @@ module MetadataHarvester
       @timeout /= 2 if @timeout > TIMEOUT_UPPER_CAP
 
       return result
-    rescue JSON::ParserError, Curl::Err::PartialFileError => e
+    rescue JSON::ParserError, Curl::Err::PartialFileError,
+     Curl::Err::ConnectionFailed => e
       timeout()
       retry
     ensure
