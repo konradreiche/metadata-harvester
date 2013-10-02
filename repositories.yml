@@ -1,3 +1,4 @@
+---
 name: CKAN Repositories
 
 repositories:
@@ -42,6 +43,7 @@ repositories:
       type: CKAN
       location: Washington, DC, USA
       rows: 1000
+      disabled: true
 
     - id: opendata.admin.ch
       name: opendata.admin.ch
