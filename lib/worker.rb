@@ -75,11 +75,14 @@ module MetadataHarvester
       url = repository[:url]
       rows = repository[:rows]
       id = repository[:id]
-      steps = count(url).fdiv(rows).ceil
+
+      total = count(url)
+      steps = total.fdiv(rows).ceil
 
       @archiver.store do |writer|
         before = Time.new
         steps.times do |i|
+          rows = total - (i * rows) if i == steps - 1
           records = query(url, rows, i, id)
 
           records = unify(records)
@@ -113,7 +116,7 @@ module MetadataHarvester
     # Uses the CKAN Search API.
     #
     def query(url, rows, i, id)
-      data = { rows: rows, start: i }
+      data = { rows: rows, start: rows * i }
       curl = curl("#{url}/3/action/package_search", data)
       curl.perform
 
