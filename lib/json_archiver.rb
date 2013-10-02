@@ -52,6 +52,8 @@ module MetadataHarvester
 
       curl = Curl::Easy.new(url)
       curl.ssl_verify_peer = false
+      curl.follow_location = true
+
       curl.on_body { |data| file.write(data) }
 
       curl.perform

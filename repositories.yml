@@ -51,3 +51,10 @@ repositories:
       type: CKAN
       location: Bern, Switzerland
       rows: 1000
+
+    - id: data.gc.ca
+      name: data.gc.ca
+      url: http://data.gc.ca/data/en/api
+      type: CKAN
+      location: Ottawa, Canada
+      rows: 1000
