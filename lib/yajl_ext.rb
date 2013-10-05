@@ -31,7 +31,7 @@ module Yajl
       end
 
       def write(string)
-        super(Yajl::Encoder.encode(string))
+        super(Yajl::Encoder.encode(string) + "\n")
       end
 
     end
