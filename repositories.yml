@@ -2,59 +2,112 @@
 name: CKAN Repositories
 
 repositories:
-    - url:  https://www.govdata.de/ckan/api
+    - id: govdata.de
+      url:  https://www.govdata.de/ckan/api
       type: CKAN
       name: GovData.de
       location: Berlin, Germany
-      languages: [German, English]
       dump: https://www.govdata.de/ckan/dump/govdata.de-daily.json.gz
  
-    - url: http://data.gov.uk/api
+    - id: data.gov.uk
+      url: http://data.gov.uk/api
       type: CKAN
       name: data.gov.uk
       location: London, UK
-      languages: [English]
       dump: http://data.gov.uk/data/dumps/data.gov.uk-ckan-meta-data-latest.json.zip
 
-    - url: http://publicdata.eu/api
+    - id: publicdata.eu
+      url: http://publicdata.eu/api
       type: CKAN
       name: PublicData.eu
       location: Brussels, Belgium
-      languages: [English, German, French]
       rows: 250
 
-    - url: https://catalogodatos.gub.uy/api
+    - id: catalogodatos.gub.uy
+      url: https://catalogodatos.gub.uy/api
       type: CKAN
       name: catalogodatos.gub.uy
       location: Montevideo, Uruguay
-      languages: [Spanish]
       rows: 1000
 
-    - url: https://data.qld.gov.au/api
+    - id: data.qld.gov.au
+      url: https://data.qld.gov.au/api
       type: CKAN
       name: data.qld.gov.au
       location: Queensland, Australia
-      languages: [English]
       rows: 1000
 
-    - url: http://catalog.data.gov/api
+    - id: catalog.data.gov
+      url: http://catalog.data.gov/api
       type: CKAN
       name: catalog.data.gov
       location: Washington, DC, USA
-      languages: [English]
       rows: 1000
       disabled: true
 
-    - url: http://opendata.admin.ch/api
+    - id: opendata.admin.ch
+      url: http://opendata.admin.ch/api
       type: CKAN
       name: opendata.admin.ch
       location: Bern, Switzerland
-      languages: [German]
       rows: 1000
 
-    - url: http://data.gc.ca/data/en/api
+    - id: data.gc.ca
+      url: http://data.gc.ca/data/en/api
       type: CKAN
       name: data.gc.ca
       location: Ottawa, Canada
-      languages: [English, French]
       rows: 100
+
+    - id: data.gv.at
+      url: http://www.data.gv.at/katalog/api
+      type: CKAN
+      name: data.gv.at
+      location: Vienna, Austria
+      legacy: true
+      disabled: true
+
+    - id: africaopendata.org
+      url: http://africaopendata.org/api
+      type: CKAN
+      name: africaopendata.org
+      location: Africa
+      rows: 1000
+
+    - id: data.gov.sk
+      url: http://data.gov.sk/api
+      type: CKAN
+      name: data.gov.sk
+      location: Bratislava, Slovakia
+      legacy: true
+      disabled: true
+
+    - id: datos.codeandomexico.org
+      url: http://datos.codeandomexico.org/api
+      type: CKAN
+      name: datos.codeandomexico.org
+      location: Mexico City, Mexico
+      rows: 1000
+
+    - id: data.sa.gov.au
+      url: http://data.sa.gov.au/api
+      type: CKAN
+      name: data.sa.gov.au
+      location: South Australia, Australia
+      rows: 1000
+
+    - id: dados.gov.br
+      url: http://dados.gov.br/api
+      type: CKAN
+      name: dados.gov.br
+      location: Brasília, Brazil
+      legacy: true
+      disabled: true
+
+    - id: data.openpolice.ru
+      url: http://data.openpolice.ru
+      type: CKAN
+      name: data.openpolice.ru
+      location: Moscow, Russia
+      legacy: true
+      disabled: true
