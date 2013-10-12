@@ -53,7 +53,7 @@ module MetadataHarvester
       if repository.key?(:dump)
         download_dump(repository)
       else
-        download_records(repository)
+        download_records(repository, repository[:legacy])
       end
     end
 
@@ -62,8 +62,8 @@ module MetadataHarvester
     #
     def download_dump(repository)
       url = repository[:dump]
-      type = File.extname(url)[1..-1]
-      @archiver.download(url, type) do |target, type|
+      file_type = File.extname(url)[1..-1]
+      @archiver.download(url, file_type) do |target, type|
         @archiver.wrap(target, type)
       end
     end
@@ -71,10 +71,12 @@ module MetadataHarvester
     ##
     # Downloads the metadata records through the exposed API.
     #
-    def download_records(repository)
+    def download_records(repository, legacy=false)
+      id = repository[:id]
       url = repository[:url]
       rows = repository[:rows]
-      id = repository[:id]
+
+      return download_records_legacy(id, url) if legacy
 
       total = count(url)
       steps = total.fdiv(rows).ceil
@@ -93,6 +95,32 @@ module MetadataHarvester
       end
     end
 
+    def query_legacy(url)
+      response = Curl.get(url).body_str
+      JSON.parse(response)
+    rescue JSON::ParserError, Curl::Err::ConnectionFailed, 
+      Curl::Err::PartialFileError
+      timeout()
+      retry
+    end
+
+    def download_records_legacy(id, url)
+      response = Curl.get("#{url}/search/dataset", { limit: 1000 }).body_str
+      records = JSON.parse(response)['results']
+
+      @archiver.store do |writer|
+        before = Time.new
+
+        metadata = []
+        records.each_with_index do |record_name, i|
+          metadata << query_legacy("#{url}/rest/dataset/#{record_name}")
+          before = eta(before, records.length, i, id)
+        end
+        
+        writer.write(metadata)
+      end
+    end
+
     ##
     # Retrieve the number of total metadata records.
     #
@@ -103,7 +131,7 @@ module MetadataHarvester
 
       return JSON.parse(content)['count']
     rescue JSON::ParserError, Curl::Err::ConnectionFailed, 
-      Curl::Err::PartialFileError => e
+      Curl::Err::PartialFileError
       timeout()
       retry
     ensure
@@ -127,7 +155,7 @@ module MetadataHarvester
 
       return result
     rescue JSON::ParserError, Curl::Err::PartialFileError,
-     Curl::Err::ConnectionFailed => e
+     Curl::Err::ConnectionFailed
       timeout()
       retry
     ensure
