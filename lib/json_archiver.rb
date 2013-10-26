@@ -5,6 +5,12 @@ require 'zlib'
 
 require_relative 'yajl_ext'
 
+##
+# The JSON archiver encapsulates the functionality for storing metadata to the
+# file system.
+# 
+# @author Konrad Reiche
+#
 module MetadataHarvester
   class JsonArchiver
 
