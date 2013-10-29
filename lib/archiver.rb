@@ -24,7 +24,11 @@ module MetadataHarvester
     # Makes sure the archive path is available and sets the path variables.
     #
     def initialize(path, id, type, date, count)
-      @header = { repository: id, type: type, date: date, count: count }
+      @header = { "repository" => id,
+                  "type"       => type,
+                  "date"       => date.to_s,
+                  "count"      => count }
+
       directory = File.expand_path("#{path}/#{id}")
 
       @path = "#{directory}/#{date}-#{id}"
@@ -36,9 +40,11 @@ module MetadataHarvester
 
     def store
       gz = File.new(@gz_file, 'w')
-      writer = Yajl::Gzip::StreamWriter.new(gz)
+      writer = Zlib::GzipWriter.new(gz)
       writer.sync = true
-      writer.write(@header)
+
+      Oj.to_stream(writer, @header)
+      writer.write("\n")
 
       yield writer
 
