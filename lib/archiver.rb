@@ -23,13 +23,17 @@ module MetadataHarvester
     #
     # Makes sure the archive path is available and sets the path variables.
     #
-    def initialize(path, id, type, date, count)
+    def initialize(path=nil, id, type, date, count)
       @header = { "repository" => id,
                   "type"       => type,
                   "date"       => date.to_s,
                   "count"      => count }
 
-      directory = File.expand_path("#{path}/#{id}")
+      if path.nil?
+        directory = File.expand_path("../archives/#{id}", File.dirname(__FILE__))
+      else
+        directory = File.expand_path("#{path}/#{id}")
+      end
 
       @path = "#{directory}/#{date}-#{id}"
       @gz_file = "#{@path}.jl.gz"

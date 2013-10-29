@@ -7,24 +7,24 @@ module MetadataHarvester
   describe Archiver do
 
     after(:all) do
-      FileUtils.remove_dir("../archives", true)
+      FileUtils.remove_dir("spec/archives", true)
     end
 
     let(:date) { Date.new(2013, 10, 29) }
-    let(:destination) { "../archives/example.com/#{date}-example.com.jl.gz" }
+    let(:destination) { "spec/archives/example.com/#{date}-example.com.jl.gz" }
 
     describe "#initialize" do
       it "deletes an existing destination file" do
-        FileUtils.mkdir_p("../archives/example.com")
+        FileUtils.mkdir_p("spec/archives/example.com")
         FileUtils.touch(destination)
 
-        Archiver.new("../archives", "example.com", "CKAN", date, 1)
+        Archiver.new("spec/archives", "example.com", "CKAN", date, 1)
         expect(File.exists?(destination)).to be_false
       end
 
       it "creates the directory structure" do
-        Archiver.new("../archives", "example.com", "CKAN", date, 1)
-        expect(File.directory?("../archives/example.com")).to be_true
+        Archiver.new("spec/archives", "example.com", "CKAN", date, 1)
+        expect(File.directory?("spec/archives/example.com")).to be_true
       end
     end
 
@@ -36,7 +36,7 @@ module MetadataHarvester
                   "date" => "2013-10-29",
                   "count" => 1}
 
-        archiver = Archiver.new("../archives", "example.com", "CKAN", date, 1)
+        archiver = Archiver.new("spec/archives", "example.com", "CKAN", date, 1)
         archiver.store { }
 
         content = Zlib::GzipReader.open(destination) { |gz| gz.readlines }
@@ -45,7 +45,7 @@ module MetadataHarvester
       end
 
       it "yields a stream writer" do
-        archiver = Archiver.new("../archives", "example.com", "CKAN", date, 1)
+        archiver = Archiver.new("spec/archives", "example.com", "CKAN", date, 1)
         hash = { id: "d8e8fca2dc0f896fd7cb4cb0031ba249" }
 
         archiver.store do |writer|

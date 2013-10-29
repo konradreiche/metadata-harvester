@@ -1,11 +1,12 @@
 require 'active_support/all'
 require 'action_view'
 require 'curb'
+require 'oj'
 require 'json'
 require 'sidekiq'
 
 require_relative 'core_ext'
-require_relative 'json_archiver'
+require_relative 'archiver'
 require_relative 'prettier'
 
 Sidekiq.configure_server do |config|
@@ -47,7 +48,7 @@ module MetadataHarvester
       date = Date.today
       count = count(url)
 
-      @archiver = Archiver.new('../archives', id, type, date, count)
+      @archiver = Archiver.new(id, type, date, count)
       @options = options.with_indifferent_access
 
       if repository.key?(:dump)
