@@ -99,7 +99,9 @@ module MetadataHarvester
     #
     def wrap_gzip(filename)
       Zlib::GzipWriter.open(@gz_file) do |writer|
-        writer.write(Yajl::Encoder.encode(@header))
+        Oj.to_stream(writer, @header)
+        writer.write("\n")
+
         Zlib::GzipReader.open(filename) do |reader|
           IO.copy_stream(reader, writer)
         end
@@ -111,7 +113,9 @@ module MetadataHarvester
     #
     def wrap_zip(filename)
       Zlib::GzipWriter.open(@gz_file) do |writer|
-        writer.write(Yajl::Encoder.encode(@header))
+        Oj.to_stream(writer, @header)
+        writer.write("\n")
+
         Zip::InputStream.open(filename) do |reader|
           reader.get_next_entry
           IO.copy_stream(reader, writer)

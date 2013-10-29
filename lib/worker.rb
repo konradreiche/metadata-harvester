@@ -89,7 +89,8 @@ module MetadataHarvester
           records = query(url, rows, i, id)
 
           records = unify(records)
-          writer.write(records)
+          Oj.to_stream(writer, records)
+          writer.write("\n")
 
           before = eta(before, steps, i, url)
         end
