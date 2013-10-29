@@ -12,7 +12,7 @@ require_relative 'yajl_ext'
 # @author Konrad Reiche
 #
 module MetadataHarvester
-  class JsonArchiver
+  class Archiver
 
     Zip.setup do |c|
       c.on_exists_proc = true
@@ -23,12 +23,12 @@ module MetadataHarvester
     #
     # Makes sure the archive path is available and sets the path variables.
     #
-    def initialize(id, type, date, count)
+    def initialize(path, id, type, date, count)
       @header = { repository: id, type: type, date: date, count: count }
-      directory = File.expand_path("../archives/#{id}", File.dirname(__FILE__))
+      directory = File.expand_path("#{path}/#{id}")
 
       @path = "#{directory}/#{date}-#{id}"
-      @gz_file = "#{@path}.raw.json.gz"
+      @gz_file = "#{@path}.jl.gz"
 
       File.delete(@gz_file) if File.exists?(@gz_file)
       FileUtils.mkdir_p(directory)

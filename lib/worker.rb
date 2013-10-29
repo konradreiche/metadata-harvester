@@ -47,7 +47,7 @@ module MetadataHarvester
       date = Date.today
       count = count(url)
 
-      @archiver = JsonArchiver.new(id, type, date, count)
+      @archiver = Archiver.new('../archives', id, type, date, count)
       @options = options.with_indifferent_access
 
       if repository.key?(:dump)
