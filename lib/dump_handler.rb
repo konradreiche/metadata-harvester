@@ -3,33 +3,39 @@ require 'oj'
 module MetadataHarvester
   class DumpHandler < Oj::ScHandler
 
-    attr_reader :record
+    attr_reader :records
+
+    THRESHOLD = 1_000
 
     def initialize
-      @stack = []
-      @close = false
+      @records, @stack = [], []
+      @hash_closed = false
     end
 
     def hash_start
-      @stack.push(Hash.new)
+      @stack << Hash.new
     end
 
     def hash_end
-      @close = true
+      @hash_closed = true
+      @records << @stack.pop if @stack.size == 1
     end
 
-    def hash_set(h, key, value)
-      puts "#{key} => #{value}"
-      if @close
-        inner = @stack.pop
-        @stack.last[key] = inner
+    # Constructions the record in a document-depth fashion.
+    #
+    # (1) Base case: assign the value to the current hash on stack.
+    #
+    # (2) Recursive case: assign completed inner hash (last on stack) to
+    #     previous hash (second last on stack).
+    #
+    def hash_set(hash, key, value)
+      if @hash_closed
+        closed_hash = @stack.pop
+        @stack.last[key] = closed_hash
+        @hash_closed = false
       else
         @stack.last[key] = value
       end
-    end
-
-    def record
-      @stack.first
     end
 
   end
