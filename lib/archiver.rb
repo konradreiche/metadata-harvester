@@ -1,3 +1,4 @@
+require 'dump_handler'
 require 'fileutils'
 require 'yajl'
 require 'zip'
@@ -89,7 +90,7 @@ module MetadataHarvester
       when :zip
         wrap_zip(filename)
       else
-        raise TypeError, "The filetype #{type} is unknown."
+        aise jypeError, "The filetype #{type} is unknown."
       end
       File.delete(filename)
     end
@@ -98,12 +99,9 @@ module MetadataHarvester
     # Routine for extracting a GZip archive on the file system.
     #
     def wrap_gzip(filename)
-      Zlib::GzipWriter.open(@gz_file) do |writer|
-        Oj.to_stream(writer, @header)
-        writer.write("\n")
-
+      init_wrap(filename) do |handler|
         Zlib::GzipReader.open(filename) do |reader|
-          IO.copy_stream(reader, writer)
+          Oj.sc_parse(handler, reader)
         end
       end
     end
@@ -112,14 +110,24 @@ module MetadataHarvester
     # Routine for extracting a Zip archive on the file system.
     #
     def wrap_zip(filename)
-      Zlib::GzipWriter.open(@gz_file) do |writer|
-        Oj.to_stream(writer, @header)
-        writer.write("\n")
-
+      init_wrap(filename) do |handler|
         Zip::InputStream.open(filename) do |reader|
-          reader.get_next_entry
-          IO.copy_stream(reader, writer)
+          input_stream = reader.get_next_entry.get_input_stream
+          Oj.sc_parse(handler, input_stream)
         end
+      end
+    end
+
+    private
+    def init_wrap(fielname)
+      store do |writer|
+        callback = Proc.new do |records|
+          writer.write(records)
+          writer.write("\n")
+        end
+
+        handler = DumpHandler.new(callback)
+        yield handler
       end
     end
 

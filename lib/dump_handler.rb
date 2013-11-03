@@ -10,7 +10,6 @@ module MetadataHarvester
     def initialize(callback=nil)
       @callback = callback
       @depth = 0
-      @i = 0
     end
 
     def hash_start
