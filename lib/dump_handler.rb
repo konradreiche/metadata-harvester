@@ -10,6 +10,7 @@ module MetadataHarvester
     def initialize(callback=nil)
       @callback = callback
       @depth = 0
+      @i = 0
     end
 
     def hash_start
@@ -29,7 +30,7 @@ module MetadataHarvester
 
       if @callback and @working_set.maybe.size == THRESHOLD
         @callback.call(@working_set)
-        @working_set = nil
+        @working_set.clear
       end
     end
 
@@ -38,7 +39,9 @@ module MetadataHarvester
     end
 
     def array_end
-      #@callback.call(@working_set) if @callback and @depth == 0
+      if @depth == 0 and not @working_set.empty?
+        @callback.maybe.call(@working_set)
+      end
     end
 
     def hash_set(hash, key, value)

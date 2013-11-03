@@ -110,11 +110,33 @@ module MetadataHarvester
       input = [{ "a" => 3 }] * 1000
 
       invocations = 0
-      callback = lambda { |x| invocations += 1 }
+      callback = Proc.new { |x| invocations += 1 }
 
       handler = DumpHandler.new(callback)
       Oj.sc_parse(handler, Oj.dump(input))
       expect(invocations).to be(1)
+    end
+
+    it "invokes the callback multiple times" do
+      input = [{ "a" => 3 }] * 3000
+
+      invocations = 0
+      callback = Proc.new { |x| invocations += 1 }
+
+      handler = DumpHandler.new(callback)
+      Oj.sc_parse(handler, Oj.dump(input))
+      expect(invocations).to be(3)
+    end
+
+    it "invokes the callback for the remaining records in the end" do
+      input = [{ "a" => 3 }] * 1500
+
+      invocations = 0
+      callback = Proc.new { |x| invocations += 1 }
+
+      handler = DumpHandler.new(callback)
+      Oj.sc_parse(handler, Oj.dump(input))
+      expect(invocations).to be(2)
     end
 
   end
