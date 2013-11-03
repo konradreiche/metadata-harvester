@@ -17,8 +17,12 @@ module MetadataHarvester
     end
 
     def hash_end
-      @hash_closed = true
-      @records << @stack.pop if @stack.size == 1
+      if @stack.size == 1
+        @records << @stack.pop if @stack.size == 1
+        @hash_closed = false
+      else
+        @hash_closed = true
+      end
     end
 
     # Constructions the record in a document-depth fashion.
