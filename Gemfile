@@ -2,6 +2,7 @@ source 'https://rubygems.org'
 
 gem 'activesupport'
 gem 'actionpack'
+gem 'andand'
 gem 'curb'
 gem 'json'
 gem 'redis-server'

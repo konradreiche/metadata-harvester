@@ -1,4 +1,9 @@
+require 'andand'
 require 'json'
+
+class Object
+  alias_method :maybe, :andand
+end
 
 module CoreExt
   module ClassMethods

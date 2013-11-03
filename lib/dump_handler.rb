@@ -5,41 +5,44 @@ module MetadataHarvester
 
     attr_reader :records
 
-    THRESHOLD = 1_000
+    THRESHOLD = 1000
 
-    def initialize
-      @records, @stack = [], []
-      @hash_closed = false
+    def initialize(callback=nil)
+      @callback = callback
+      @depth = 0
     end
 
     def hash_start
-      @stack << Hash.new
+      @depth += 1
+      Hash.new
+    end
+
+    # Set the pointer if records is not initialized yet.
+    #
+    def array_start
+      @working_set ? Array.new : @working_set = Array.new
+    end
+
+    def array_append(array, value)
+      array << value
+      @records = @working_set if @depth == 0
+
+      if @callback and @working_set.maybe.size == THRESHOLD
+        @callback.call(@working_set)
+        @working_set = nil
+      end
     end
 
     def hash_end
-      if @stack.size == 1
-        @records << @stack.pop if @stack.size == 1
-        @hash_closed = false
-      else
-        @hash_closed = true
-      end
+      @depth -= 1
     end
 
-    # Constructions the record in a document-depth fashion.
-    #
-    # (1) Base case: assign the value to the current hash on stack.
-    #
-    # (2) Recursive case: assign completed inner hash (last on stack) to
-    #     previous hash (second last on stack).
-    #
+    def array_end
+      #@callback.call(@working_set) if @callback and @depth == 0
+    end
+
     def hash_set(hash, key, value)
-      if @hash_closed
-        closed_hash = @stack.pop
-        @stack.last[key] = closed_hash
-        @hash_closed = false
-      else
-        @stack.last[key] = value
-      end
+      hash[key] = value
     end
 
   end

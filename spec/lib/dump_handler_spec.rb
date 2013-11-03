@@ -7,6 +7,8 @@ module MetadataHarvester
 
     subject { DumpHandler.new }
 
+    let(:threshold) { DumpHandler.const_get(:THRESHOLD) }
+
     # Helper method to parse the input and return the result
     #
     def parsed(input)
@@ -14,101 +16,106 @@ module MetadataHarvester
       subject.records
     end
 
-    it "handles an empty array" do
+    it "handles records.size == 0" do
       input = []
-      expect(parsed(input)).to eq(input)
+      expect(parsed(input)).to be_nil
     end
 
-    it "handles one empty record" do
+    it "handles records.size == 1 and record.size == 0" do
       input = [{}]
       expect(parsed(input)).to eq(input)
     end
 
-    it "handles multiple empty records" do
+    it "handles records.size > n and record.size == 0" do
       input = [{}, {}, {}]
       expect(parsed(input)).to eq(input)
     end
 
-    it "handles one simple record" do
-      input = [{ "id" => "statistics-2013", "reviews" => 3 }]
+    it "handles records.size == 1 and record.size == 1" do
+      input = [{ "a" => 3 }]
       expect(parsed(input)).to eq(input)
     end
 
-    it "handles multiple simple records" do
-      input = [{ "id" => "statistics-2013", "reviews" => 3 }] * 3
+    it "handles records.size == 1 and record.size > n" do
+      input = [{ "a" => 3, "b" => "5", "c" => true }]
       expect(parsed(input)).to eq(input)
     end
 
-    it "handles one record with one nested field" do
-      input = [{ "id"      => "statistics-2013",
-                 "reviews" => 3,
-                 "author"  => { "name"     => "Marlene Hayes",
-                                "birthday" => "1970-11-12" }}]
+    it "handles records.size > n and record.size == 1" do
+      input = [{ "a" => 3 }] * 3
+      expect(parsed(input)).to eq(input)
+    end
+
+    it "handles records.size > n and record.size > n" do
+      input = [{ "a" => 3, "b" => "5", "c" => true }] * 3
+      expect(parsed(input)).to eq(input)
+    end
+
+    it "handles records.size == 1 and array.size == 0" do
+      input = [{ "a" => [] }] 
+      expect(parsed(input)).to eq(input)
+    end
+
+    it "handles records.size > n and array.size == 0" do
+      input = [{ "a" => [] }]  * 3
+      expect(parsed(input)).to eq(input)
+    end
+
+    it "handles records.size == 1 and array.size == 1" do
+      input = [{ "a" => ["b"] }] 
+      expect(parsed(input)).to eq(input)
+    end
+
+    it "handles records.size > n and array.size == 1" do
+      input = [{ "a" => ["b"] }]  * 3
+      expect(parsed(input)).to eq(input)
+    end
+
+    it "handles records.size == 1 and array.size > n" do
+      input = [{ "a" => ["b", 5, true] }]
+      expect(parsed(input)).to eq(input)
+    end
+
+    it "handles records.size > n and array.size > n" do
+      input = [{ "a" => ["b", 5, true] }] * 3
+      expect(parsed(input)).to eq(input)
+    end
+
+    it "handles records.size == 1 and record.depth > n" do
+      input = [{ "a" => { "b" => { "c" => 3 }}}]
+      expect(parsed(input)).to eq(input)
+    end
+
+    it "handles records.size > n and record.depth > n" do
+      input = [{ "a" => { "b" => { "c" => 3 }}}]
+      expect(parsed(input)).to eq(input)
+    end
+
+    it "handles alternating hashes and arrays" do
+      input = [{ "a" => [{ "b" => { "c" => [{ "d" => [3, 5, 7]}]}}]}]
+      expect(parsed(input)).to eq(input)
+    end
+    
+    it "handles a record with different field types" do
+      input = [{ "a" => "1",
+                 "b" => 2,
+                 "c" => [3, 3, 4],
+                 "d" => 5,
+                 "e" => { "6" => { "f" => true }}}]
 
       expect(parsed(input)).to eq(input)
     end
 
-    it "handles multiple records with one nested field" do
-      input = [{ "id"      => "statistics-2013",
-                 "reviews" => 3,
-                 "author"  => { "name"     => "Marlene Hayes",
-                                "birthday" => "1970-11-12" }}] * 3
+    it "invokes the callback once if threshold is reached" do
+      input = [{ "a" => 3 }] * 1000
 
-      expect(parsed(input)).to eq(input)
+      invocations = 0
+      callback = lambda { |x| invocations += 1 }
+
+      handler = DumpHandler.new(callback)
+      Oj.sc_parse(handler, Oj.dump(input))
+      expect(invocations).to be(1)
     end
-
-    it "handles one record with multiple nested fields" do
-      input = [{ "id"          => "statistics-2013",
-                 "reviews"     => 3,
-                 "author"      => { "name"     => "Marlene Hayes",
-                                    "birthday" => "1970-11-12" },
-                 "description" => "Statistics of the year 2013",
-                 "resources"   => { "id"       => "statistics-2013-pdf",
-                                    "format"   => "PDF" }}]
-
-      expect(parsed(input)).to eq(input)
-    end
-
-    it "handles multiple records with multiple nested fields" do
-      input = [{ "id"          => "statistics-2013",
-                 "reviews"     => 3,
-                 "author"      => { "name"     => "Marlene Hayes",
-                                    "birthday" => "1970-11-12" },
-                 "description" => "Statistics of the year 2013",
-                 "resources"   => { "id"       => "statistics-2013-pdf",
-                                    "format"   => "PDF" }}] * 3
-
-      expect(parsed(input)).to eq(input)
-    end
-
-    it "handles arbitrary depth" do
-      input = [{ "a" => { "b" => { "c" => { "d" => { "e" => 1 }}}}}]
-      expect(parsed(input)).to eq(input)
-    end
-
-#    it "handles one record with nested fields and arrays" do
-#      resources = [{ "id" => 1, "formats" => ["PDF"] }] * 3
-#
-#      input = [{ "id"        => "statistics-2013",
-#                 "tags"      => ["transparency", "statistics"],
-#                 "resources" => resources }]
-#
-#      expect(parsed(input)).to eq(input)
-#    end
-#
-#    it "handles arbitrary depth with mixed hashes and arrays" do
-#      input = [{"a" => [{"b" => {"c" => [1, 2, 3]}}] * 3}]
-#      expect(parsed(input)).to eq(input)
-#    end
-#
-#    it "partitions the records by the defined threshold" do
-#      threshold = DumpHandler.THRESHOLD
-#      input = [{ "a" => 1 }] * threshold * 3
-#
-#      result = parsed(input)
-#      expect(result.length).to be 3
-#      expect(result).to eq(input.each_slice(3).to_a)
-#    end
 
   end
   
