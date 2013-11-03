@@ -1,9 +1,9 @@
-require 'dump_handler'
 require 'fileutils'
 require 'yajl'
 require 'zip'
 require 'zlib'
 
+require_relative 'dump_handler'
 require_relative 'yajl_ext'
 
 ##
