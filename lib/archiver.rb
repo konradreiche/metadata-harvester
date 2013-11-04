@@ -122,7 +122,7 @@ module MetadataHarvester
     def init_wrap(fielname)
       store do |writer|
         callback = Proc.new do |records|
-          writer.write(records)
+          Oj.to_stream(writer, records)
           writer.write("\n")
         end
 
