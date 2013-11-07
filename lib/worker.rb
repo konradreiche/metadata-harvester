@@ -126,13 +126,19 @@ module MetadataHarvester
     ##
     # Retrieve the number of total metadata records.
     #
-    def count(url)
-      curl = curl("#{url}/search/dataset")
-      curl.perform
-      content = curl.body_str
+    def count(url, legacy=false)
 
-      return JSON.parse(content)['count']
-    rescue JSON::ParserError, Curl::Err::ConnectionFailed, 
+      model_api = '/rest/dataset'
+      action_api = '/action/package_search'
+
+      url = url + (legacy ? model_api : action_api)
+      method = legacy ? :get : :post
+      curl = curl(url, method)
+
+      curl.perform
+      response = JSON.parse(curl.body_str)
+      return legacy ? response.length : response['result']['count']
+    rescue JSON::ParserError, Curl::Err::ConnectionFailedError, 
       Curl::Err::PartialFileError
       timeout()
       retry
@@ -147,7 +153,7 @@ module MetadataHarvester
     #
     def query(url, rows, i, id)
       data = { rows: rows, start: rows * i }
-      curl = curl("#{url}/3/action/package_search", data)
+      curl = curl("#{url}/3/action/package_search", :get, data)
       curl.perform
 
       content = curl.body_str
@@ -157,7 +163,7 @@ module MetadataHarvester
 
       return result
     rescue JSON::ParserError, Curl::Err::PartialFileError,
-     Curl::Err::ConnectionFailed
+     Curl::Err::ConnectionFailedError
       timeout()
       retry
     ensure
@@ -197,13 +203,18 @@ module MetadataHarvester
       return now
     end
 
-    def curl(url, parameter={})
-      curl = Curl::Easy.new
-      curl.url = Curl::urlalize(url, parameter)
-      curl.ssl_verify_peer = false
-      curl.follow_location = true
+    def curl(url, method=:get, parameter={})
+      settings = Proc.new do |curl|
+        curl.ssl_verify_peer = false
+        curl.follow_location = true
+      end
 
-      return curl
+      case method
+      when :get
+        Curl.get(url, parameter, &settings)
+      when :post
+        Curl.post(url, JSON.dump(parameter), &settings)
+      end
     end
 
   end
