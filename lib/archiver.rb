@@ -1,10 +1,8 @@
 require 'fileutils'
-require 'yajl'
 require 'zip'
 require 'zlib'
 
 require_relative 'dump_handler'
-require_relative 'yajl_ext'
 
 ##
 # The JSON archiver encapsulates the functionality for storing metadata to the
