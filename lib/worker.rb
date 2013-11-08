@@ -75,7 +75,7 @@ module MetadataHarvester
     def download_records(repository, legacy=false)
       id = repository[:id]
       url = repository[:url]
-      rows = repository[:rows]
+      rows = repository.key?(:rows) ? repository[:rows] : 1000
 
       return download_records_legacy(id, url) if legacy
 
@@ -185,6 +185,18 @@ module MetadataHarvester
       records = records.each do |record|
         record['groups'] = record['groups'].map { |group| group['name'] }
         record['tags'] = record['tags'].map { |tag| tag['name'] }
+
+        record['extras'] = record['extras'].each_with_object({}) do |extra, result|
+          value = extra['value']
+
+          if value.is_a?(String)
+            value = JSON.parse_recursively(value)
+            value = value[1..-1] if value.starts_with?('"')
+            value = value[0..-2] if value.ends_with?('"')
+          end
+
+          result[extra['key']] = value
+        end
       end
     end
     

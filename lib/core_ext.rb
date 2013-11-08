@@ -26,6 +26,7 @@ module CoreExt
         end
       end
 
+      return source unless valid?(source)
       source = JSON.parse(source)
       recursion.call(source)
     end

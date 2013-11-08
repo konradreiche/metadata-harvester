@@ -42,9 +42,9 @@ describe CoreExt do
       expect { JSON.parse_recursively(source) }.to raise_error(TypeError)
     end
 
-    it "does not parse a simple a unstructred string" do
+    it "parsed an unstructured string by returnig it" do
       source = "text"
-      expect { JSON.parse_recursively(source) }.to raise_error(JSON::ParserError)
+      expect(JSON.parse_recursively(source)).to eq(source)
     end
 
     it "parses multiple nested string encoded JSON objects" do
