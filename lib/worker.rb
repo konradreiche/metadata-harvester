@@ -41,12 +41,13 @@ module MetadataHarvester
       id = repository[:id]
       url = repository[:url]
       type = repository[:type]
+      legacy = repository[:legacy]
 
       logger.formatter.add(id)
       logger.info("Start harvester")
 
       date = Date.today
-      count = count(url)
+      count = count(url, legacy)
 
       @archiver = Archiver.new(id, type, date, count)
       @options = options.with_indifferent_access
@@ -54,7 +55,7 @@ module MetadataHarvester
       if repository.key?(:dump)
         download_dump(repository)
       else
-        download_records(repository, repository[:legacy])
+        download_records(repository, legacy)
       end
     end
 
@@ -82,6 +83,7 @@ module MetadataHarvester
       total = count(url)
       steps = total.fdiv(rows).ceil
 
+
       @archiver.store do |writer|
         before = Time.new
         steps.times do |i|
@@ -107,19 +109,20 @@ module MetadataHarvester
     end
 
     def download_records_legacy(id, url)
-      response = Curl.get("#{url}/search/dataset", { limit: 1000 }).body_str
-      records = JSON.parse(response)['results']
+      response = Curl.get("#{url}/rest/dataset").body_str
+      records = JSON.parse(response)
 
       @archiver.store do |writer|
         before = Time.new
-
         metadata = []
+
         records.each_with_index do |record_name, i|
           metadata << query_legacy("#{url}/rest/dataset/#{record_name}")
           before = eta(before, records.length, i, id)
         end
         
-        writer.write(metadata)
+        Oj.to_stream(writer, metadata)
+        writer.write("\n")
       end
     end
 
@@ -127,7 +130,6 @@ module MetadataHarvester
     # Retrieve the number of total metadata records.
     #
     def count(url, legacy=false)
-
       model_api = '/rest/dataset'
       action_api = '/action/package_search'
 

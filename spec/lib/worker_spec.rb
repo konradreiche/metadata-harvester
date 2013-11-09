@@ -101,7 +101,6 @@ module MetadataHarvester
         expectation = { 'free_of_charge' => false, 'free_to_use' => false }
         expect(result['extras']).to eq(expectation)
       end
-
     end
 
   end
