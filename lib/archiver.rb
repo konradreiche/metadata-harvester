@@ -64,6 +64,7 @@ module MetadataHarvester
 
       filename = "#{@path}.dump.#{type}"
       file = File.new(filename, 'w')
+      file.sync = true
 
       curl = Curl::Easy.new(url)
       curl.ssl_verify_peer = false
@@ -72,7 +73,9 @@ module MetadataHarvester
       curl.on_body { |data| file.write(data) }
 
       curl.perform
+      curl.close()
       file.close()
+
       yield filename, type
     end
 
@@ -97,7 +100,7 @@ module MetadataHarvester
     # Routine for extracting a GZip archive on the file system.
     #
     def wrap_gzip(filename)
-      init_wrap(filename) do |handler|
+      init_wrap do |handler|
         Zlib::GzipReader.open(filename) do |reader|
           Oj.sc_parse(handler, reader)
         end
@@ -108,7 +111,7 @@ module MetadataHarvester
     # Routine for extracting a Zip archive on the file system.
     #
     def wrap_zip(filename)
-      init_wrap(filename) do |handler|
+      init_wrap do |handler|
         Zip::InputStream.open(filename) do |reader|
           input_stream = reader.get_next_entry.get_input_stream
           Oj.sc_parse(handler, input_stream)
@@ -117,7 +120,7 @@ module MetadataHarvester
     end
 
     private
-    def init_wrap(fielname)
+    def init_wrap
       store do |writer|
         callback = Proc.new do |records|
           Oj.to_stream(writer, records)
