@@ -27,14 +27,14 @@ module CoreExt
       end
 
       return source unless valid?(source)
-      source = JSON.parse(source)
+      source = JSON.load(source)
       recursion.call(source)
     end
 
     def valid?(source)
-      JSON.parse(source)
+      JSON.load(source)
       true
-    rescue JSON::ParserError
+    rescue JSON::ParserError, NoMethodError
       false
     end
 

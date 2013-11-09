@@ -188,12 +188,10 @@ module MetadataHarvester
 
         record['extras'] = record['extras'].each_with_object({}) do |extra, result|
           value = extra['value']
+          value = JSON.parse_recursively(value) if value.is_a?(String)
 
-          if value.is_a?(String)
-            value = JSON.parse_recursively(value)
-            value = value[1..-1] if value.starts_with?('"')
-            value = value[0..-2] if value.ends_with?('"')
-          end
+          value = false if value == 'False'
+          value = true if value == 'True'
 
           result[extra['key']] = value
         end

@@ -37,9 +37,9 @@ describe CoreExt do
       expect { JSON.parse_recursively(source) }.to raise_error(TypeError)
     end
     
-    it "does not parse a number" do
+    it "returns other types unchanged" do
       source = 1
-      expect { JSON.parse_recursively(source) }.to raise_error(TypeError)
+      expect(JSON.parse_recursively(source)).to be(1)
     end
 
     it "parsed an unstructured string by returnig it" do
