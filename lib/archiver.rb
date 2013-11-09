@@ -88,7 +88,7 @@ module MetadataHarvester
       when :zip
         wrap_zip(filename)
       else
-        aise jypeError, "The filetype #{type} is unknown."
+        raise TypeError, "The filetype #{type} is unknown."
       end
       File.delete(filename)
     end
