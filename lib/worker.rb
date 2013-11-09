@@ -101,7 +101,7 @@ module MetadataHarvester
 
     def query_legacy(url)
       response = Curl.get(url).body_str
-      JSON.parse(response)
+      JSON.parse_recursively(response)
     rescue JSON::ParserError, Curl::Err::ConnectionFailed, 
       Curl::Err::PartialFileError
       timeout()
