@@ -83,7 +83,6 @@ module MetadataHarvester
       total = count(url)
       steps = total.fdiv(rows).ceil
 
-
       @archiver.store do |writer|
         before = Time.new
         steps.times do |i|
@@ -113,11 +112,18 @@ module MetadataHarvester
       records = JSON.parse(response)
 
       @archiver.store do |writer|
-        before = Time.new
+        before = Time.now
         metadata = []
 
         records.each_with_index do |record_name, i|
-          metadata << query_legacy("#{url}/rest/dataset/#{record_name}")
+          dataset = query_legacy("#{url}/rest/dataset/#{record_name}")
+
+          if not dataset.is_a?(Hash)
+            logger.warn("Drop dataset #{record_name} (#{dataset}")
+            next
+          end
+
+          metadata << dataset
           before = eta(before, records.length, i, id)
         end
         
@@ -208,7 +214,7 @@ module MetadataHarvester
     #
     def eta(before, steps, i, url)
       now = Time.new
-      elapsed = (now - before) * (steps - i + 1)
+      elapsed = (now - before) * (steps - (i + 1))
       eta = distance_of_time_in_words(before, before + elapsed)
 
       logger.info("#{i + 1} of #{steps} - #{url} ~ #{eta}")
