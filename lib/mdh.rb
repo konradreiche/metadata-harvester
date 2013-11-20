@@ -13,11 +13,18 @@ module MetadataHarvester
   def self.start
     options = Trollop::options do
       opt :repositories, 'Only harvest certain repositories', :type => :strings
+      opt :dumps, 'A file with a list of dumps and dates', :type => :string
     end
 
     repositories = load_repositories
+
     selection = options[:repositories]
     selection = repositories.map { |item| item[:id] } if selection.nil?
+
+    if not options[:dumps].nil?
+      dumps = YAML.load(File.read(options[:dumps])) unless options[:dumps].nil?
+      selection = [dumps['id']]
+    end
 
     catalog = filter(repositories, selection)
     catalog.each do |repository|

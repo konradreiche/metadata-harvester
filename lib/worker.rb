@@ -40,6 +40,7 @@ module MetadataHarvester
 
       id = repository[:id]
       url = repository[:url]
+
       type = repository[:type]
       legacy = repository[:legacy]
 
@@ -49,12 +50,15 @@ module MetadataHarvester
       date = Date.today
       count = count(url, legacy)
 
-      @archiver = Archiver.new(id, type, date, count)
       @options = options.with_indifferent_access
 
-      if repository.key?(:dump)
-        download_dump(repository)
+      if not @options[:dumps].nil?
+        download_dumps(repository)
+      elsif repository.key?(:dump)
+        @archiver = Archiver.new(id, type, date, count)
+        download_dump(repository, url)
       else
+        @archiver = Archiver.new(id, type, date, count)
         download_records(repository, legacy)
       end
     end
@@ -62,11 +66,25 @@ module MetadataHarvester
     ##
     # Downloads and extracts the dump of a repository.
     #
-    def download_dump(repository)
-      url = repository[:dump]
+    def download_dump(repository, url=nil)
+      url = repository[:dump] if url.nil?
       file_type = File.extname(url)[1..-1]
       @archiver.download(url, file_type) do |target, type|
         @archiver.wrap(target, type)
+      end
+    end
+
+    # Downloads a list of dumps based on the given options.
+    #
+    def download_dumps(repository)
+      dumps = YAML.load(File.read(@options[:dumps]))
+      id = repository[:id]
+      type = repository[:type]
+      dumps.delete('id')
+
+      dumps.each do |date, url|
+        @archiver = Archiver.new(id, type, date, '?')
+        download_dump(repository, url)
       end
     end
 
