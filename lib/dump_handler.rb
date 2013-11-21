@@ -1,3 +1,4 @@
+require 'ckan'
 require 'oj'
 
 module MetadataHarvester
@@ -44,7 +45,11 @@ module MetadataHarvester
     end
 
     def hash_set(hash, key, value)
-      hash[key] = value
+      if key == 'extras'
+        hash[key] = CKAN.normalize_extras(value)
+      else
+        hash[key] = value
+      end
     end
 
   end
