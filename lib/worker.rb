@@ -5,6 +5,7 @@ require 'oj'
 require 'json'
 require 'sidekiq'
 
+require_relative 'ckan'
 require_relative 'core_ext'
 require_relative 'archiver'
 require_relative 'prettier'
@@ -67,7 +68,7 @@ module MetadataHarvester
     # Downloads and extracts the dump of a repository.
     #
     def download_dump(repository, url=nil)
-      url = repository[:dump] if url.nil?
+      url = repository[:dump]
       file_type = File.extname(url)[1..-1]
       @archiver.download(url, file_type) do |target, type|
         @archiver.wrap(target, type)
@@ -118,7 +119,7 @@ module MetadataHarvester
 
     def query_legacy(url)
       response = Curl.get(url).body_str
-      JSON.parse_recursively(response)
+      Oj.load(response)
     rescue JSON::ParserError, Curl::Err::ConnectionFailed, 
       Curl::Err::PartialFileError
       timeout()
@@ -127,7 +128,7 @@ module MetadataHarvester
 
     def download_records_legacy(id, url)
       response = Curl.get("#{url}/rest/dataset").body_str
-      records = JSON.parse(response)
+      records = Oj.parse(response)
 
       @archiver.store do |writer|
         before = Time.now
@@ -162,7 +163,7 @@ module MetadataHarvester
       curl = curl(url, method)
 
       curl.perform
-      response = JSON.parse(curl.body_str)
+      response = Oj.load(curl.body_str)
       return legacy ? response.length : response['result']['count']
     rescue JSON::ParserError, Curl::Err::ConnectionFailedError, 
       Curl::Err::PartialFileError
@@ -183,7 +184,7 @@ module MetadataHarvester
       curl.perform
 
       content = curl.body_str
-      response = JSON.parse_recursively(content)
+      response = Oj.load(content)
       result = response['result']['results']
       @timeout /= 2 if @timeout > TIMEOUT_UPPER_CAP
 
@@ -214,7 +215,7 @@ module MetadataHarvester
 
         record['extras'] = record['extras'].each_with_object({}) do |extra, result|
           value = extra['value']
-          value = JSON.parse_recursively(value) if value.is_a?(String)
+          value = CKAN.normalize_extras(value) if value.is_a?(String)
 
           value = false if value == 'False'
           value = true if value == 'True'
