@@ -216,10 +216,6 @@ module MetadataHarvester
         record['extras'] = record['extras'].each_with_object({}) do |extra, result|
           value = extra['value']
           value = CKAN.normalize_extras(value) if value.is_a?(String)
-
-          value = false if value == 'False'
-          value = true if value == 'True'
-
           result[extra['key']] = value
         end
       end

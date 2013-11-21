@@ -74,7 +74,7 @@ module MetadataHarvester
                      'extras' => [extras1, extras2] }]
 
         result = subject.unify(records).first
-        expectation = { 'languages' => ['german', 'english'], 'id' => 1 }
+        expectation = { 'languages' => ['german', 'english'], 'id' => '1' }
         expect(result['extras']).to eq(expectation)
       end
 
@@ -87,7 +87,7 @@ module MetadataHarvester
                      'extras' => [extras1, extras2] }]
 
         result = subject.unify(records).first
-        expectation = { 'free_of_charge' => true, 'free_to_use' => true }
+        expectation = { 'free_of_charge' => 'true', 'free_to_use' => 'True' }
         expect(result['extras']).to eq(expectation)
 
         extras1 = { 'key' => 'free_of_charge', 'value' => 'false' }
@@ -98,7 +98,7 @@ module MetadataHarvester
                      'extras' => [extras1, extras2] }]
 
         result = subject.unify(records).first
-        expectation = { 'free_of_charge' => false, 'free_to_use' => false }
+        expectation = { 'free_of_charge' => 'false', 'free_to_use' => 'False' }
         expect(result['extras']).to eq(expectation)
       end
     end
