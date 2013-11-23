@@ -7,25 +7,21 @@ require 'oj'
 #
 class CKAN
 
-  def self.normalize_extras(input)
-    recursion = lambda do |source|
-      if source.is_a?(Hash)
-        source.each { |key, value| source[key] = recursion.call(value) }
-      elsif source.is_a?(Array)
-        source.map { |item| recursion.call(item) }
-      elsif source.is_a?(String) and valid?(source)
-        recursion.call(Oj.load(source))
-      else
-        source
-      end
+  def self.normalize_extras(source)
+    if source.is_a?(Hash)
+      source.each { |key, value| source[key] = normalize_extras(value) }
+    elsif source.is_a?(Array)
+      source.map { |item| normalize_extras(item) }
+    elsif source.is_a?(String) and valid?(source)
+      normalize_extras(Oj.load(source))
+    else
+      source
     end
-
-    recursion.call(input)
   end
 
   def self.valid?(source)
     value = Oj.load(source)
-    value.is_a?(Array) or value.is_a?(Hash)
+    value.is_a?(Array) or value.is_a?(Hash) or value.is_a?(String)
   rescue Oj::ParseError
     false
   end

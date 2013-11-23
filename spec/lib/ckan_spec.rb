@@ -68,5 +68,10 @@ describe CKAN do
       expect(CKAN.normalize_extras(source)).to eq(expectation)
     end
 
+    it "parses a String encoded String" do
+      source = JSON.dump('a')
+      expect(CKAN.normalize_extras(source)).to eq('a')
+    end
+
   end
 end
