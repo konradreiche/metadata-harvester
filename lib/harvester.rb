@@ -1,0 +1,2 @@
+class Harvester
+end
